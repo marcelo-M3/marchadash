@@ -51,10 +51,10 @@ export function DashboardPage() {
               <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
                 <div>
                   <div className="flex items-end gap-3">
-                    <span className="text-6xl font-semibold tracking-[-0.06em] text-slate-900">{data.clientes_ativos}</span>
-                    <span className="pb-2 text-lg text-slate-500">clientes ativos</span>
+                    <span className="theme-text text-6xl font-semibold tracking-[-0.06em]">{data.clientes_ativos}</span>
+                    <span className="theme-muted pb-2 text-lg">clientes ativos</span>
                   </div>
-                  <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
+                  <p className="theme-muted mt-4 max-w-2xl text-sm leading-7">
                     {data.clientes_bons} clientes estão bem, {data.clientes_alerta} pedem atenção e {data.clientes_critico} estão em situação crítica.
                   </p>
                   <div className="mt-6 grid gap-3 sm:grid-cols-3">
@@ -110,11 +110,11 @@ export function DashboardPage() {
               <SummaryCard title="LTV médio e mediana" description="Tempo médio e ponto central de permanência da carteira.">
                 <div className="flex items-end gap-3">
                   <div className="metric-number font-bold text-primary">{formatMonths(data.ltv_medio)}</div>
-                  <span className="pb-1 text-lg font-medium text-slate-600">meses</span>
+                  <span className="theme-muted pb-1 text-lg font-medium">meses</span>
                 </div>
-                <div className="mt-5 rounded-[20px] border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Mediana</p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-900">{formatMonths(data.ltv_mediana)} meses</p>
+                <div className="theme-soft-surface mt-5 rounded-[20px] border p-4">
+                  <p className="theme-muted text-xs uppercase tracking-[0.2em]">Mediana</p>
+                  <p className="theme-text mt-2 text-2xl font-semibold">{formatMonths(data.ltv_mediana)} meses</p>
                 </div>
               </SummaryCard>
 
@@ -129,8 +129,8 @@ export function DashboardPage() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                      <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} />
+                      <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
                       <Tooltip content={<CustomTooltip />} />
                       <Area type="monotone" dataKey="base" stroke="#246bff" strokeWidth={2.5} fill="url(#overviewBase)" name="Base" />
                       <Line type="monotone" dataKey="churn" stroke="#ef4444" strokeWidth={2.5} dot={false} name="Churn %" />
@@ -144,8 +144,8 @@ export function DashboardPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={momentumData} margin={{ top: 0, right: 0, left: -16, bottom: 0 }}>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                      <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} />
+                      <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
                       <Tooltip content={<CustomTooltip />} />
                       <Line
                         type="monotone"
@@ -158,9 +158,9 @@ export function DashboardPage() {
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="mt-4 rounded-[18px] border border-slate-200 bg-slate-50 p-4">
+                <div className="theme-soft-surface mt-4 rounded-[18px] border p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-500">Churn médio</span>
+                    <span className="theme-muted text-sm">Churn médio</span>
                     <span className={getChurnColor(data.churn_medio)}>{formatPercent(data.churn_medio)}</span>
                   </div>
                 </div>

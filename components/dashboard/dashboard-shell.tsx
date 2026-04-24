@@ -5,7 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, LogOut, RefreshCw, TrendingUp, Users } from "lucide-react";
+import { LayoutDashboard, LogOut, Moon, RefreshCw, Sun, TrendingUp, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useClientesData } from "@/hooks/use-clientes-data";
 import { ClientesDashboardData } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,8 @@ const navItems: NavItem[] = [
   { href: "/registro-de-saidas", label: "Registro de Saídas", icon: LogOut }
 ];
 
+type ThemeMode = "light" | "dark";
+
 export function DashboardShell({
   title,
   description,
@@ -41,13 +44,30 @@ export function DashboardShell({
   children: ReactNode;
 }) {
   const pathname = usePathname();
+  const [theme, setTheme] = useState<ThemeMode>("light");
+
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem("marcha-theme");
+    if (savedTheme === "light" || savedTheme === "dark") {
+      setTheme(savedTheme);
+      return;
+    }
+
+    const preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    setTheme(preferred);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    window.localStorage.setItem("marcha-theme", theme);
+  }, [theme]);
 
   return (
-    <div className="min-h-screen bg-background text-slate-900">
+    <div className="min-h-screen bg-background theme-text">
       <div className="flex min-h-screen flex-col md:flex-row">
-        <aside className="border-b border-slate-200 bg-sidebar md:sticky md:top-0 md:h-screen md:w-[280px] md:border-b-0 md:border-r">
+        <aside className="theme-sidebar border-b md:sticky md:top-0 md:h-screen md:w-[280px] md:border-b-0 md:border-r">
           <div className="flex h-full flex-col">
-            <div className="border-b border-slate-200 px-6 py-6">
+            <div className="theme-border border-b px-6 py-6">
               <Image
                 src="/logomarcha.png"
                 alt="Marcha Ads"
@@ -70,14 +90,14 @@ export function DashboardShell({
                     className={cn(
                       "group flex w-full items-center gap-3 rounded-[14px] px-4 py-3 text-left transition duration-200",
                       isActive
-                        ? "bg-blue-50 text-primary"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        ? "theme-nav-active text-primary"
+                        : "theme-muted hover:bg-[var(--nav-hover)] hover:text-[var(--text-color)]"
                     )}
                   >
                     <div
                       className={cn(
                         "rounded-full p-2 transition",
-                        isActive ? "bg-white text-primary shadow-sm" : "bg-slate-100 text-slate-500"
+                        isActive ? "theme-surface text-primary shadow-sm" : "theme-icon-surface theme-muted"
                       )}
                     >
                       <Icon className="h-4 w-4" />
@@ -88,14 +108,41 @@ export function DashboardShell({
               })}
             </nav>
 
-            <div className="mt-auto border-t border-slate-200 px-6 py-5">
+            <div className="theme-border mt-auto border-t px-6 py-5">
+              <div className="mb-5 rounded-[16px] border theme-soft-surface p-1">
+                <div className="grid grid-cols-2 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setTheme("light")}
+                    className={cn(
+                      "flex items-center justify-center gap-2 rounded-[12px] px-3 py-2 text-sm font-medium transition",
+                      theme === "light" ? "bg-primary text-white" : "theme-muted"
+                    )}
+                  >
+                    <Sun className="h-4 w-4" />
+                    Light
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme("dark")}
+                    className={cn(
+                      "flex items-center justify-center gap-2 rounded-[12px] px-3 py-2 text-sm font-medium transition",
+                      theme === "dark" ? "bg-primary text-white" : "theme-muted"
+                    )}
+                  >
+                    <Moon className="h-4 w-4" />
+                    Dark
+                  </button>
+                </div>
+              </div>
+
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-primary">
+                <div className="theme-strong-surface flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold text-primary">
                   MD
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">Marcha Digital</p>
-                  <p className="text-xs text-slate-500">Agência de Tráfego Pago</p>
+                  <p className="text-sm font-semibold theme-text">Marcha Digital</p>
+                  <p className="text-xs theme-muted">Agência de Tráfego Pago</p>
                 </div>
               </div>
             </div>
@@ -104,17 +151,17 @@ export function DashboardShell({
 
         <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-[1380px]">
-          <header className="mb-6 rounded-[24px] border border-slate-200 bg-white px-6 py-5 shadow-panel">
+          <header className="theme-surface mb-6 rounded-[24px] border px-6 py-5 shadow-panel">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl">
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Dashboard / Saúde de Clientes</p>
-                <h1 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-slate-900 sm:text-4xl">{title}</h1>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-500">{description}</p>
+                <p className="theme-muted text-xs uppercase tracking-[0.22em]">Dashboard / Saúde de Clientes</p>
+                <h1 className="theme-text mt-3 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">{title}</h1>
+                <p className="theme-muted mt-3 max-w-2xl text-sm leading-7">{description}</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <div className="rounded-[16px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                  Última atualização: <span className="font-semibold text-slate-900">{updatedAt ?? "—"}</span>
+                <div className="theme-soft-surface theme-muted rounded-[16px] border px-4 py-3 text-sm">
+                  Última atualização: <span className="theme-text font-semibold">{updatedAt ?? "—"}</span>
                 </div>
                 <Button className="rounded-[16px] bg-primary text-white hover:bg-blue-600" onClick={onRefresh}>
                   <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
@@ -136,8 +183,8 @@ export function DashboardShell({
                   className={cn(
                     "inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm transition",
                     isActive
-                      ? "border-blue-100 bg-blue-50 text-primary"
-                      : "border-slate-200 bg-white text-slate-600"
+                      ? "theme-nav-active theme-border text-primary"
+                      : "theme-surface theme-muted"
                   )}
                 >
                   <Icon className="h-4 w-4" />

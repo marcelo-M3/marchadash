@@ -101,10 +101,10 @@ function SaidasContent({ data }: { data: { saidas_por_mes: ExitItem[] | any[] } 
               <select
                 value={selectedYear}
                 onChange={(event) => setSelectedYear(event.target.value)}
-                className="h-11 w-full rounded-[14px] border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-primary/60 focus:bg-white"
+                className="theme-surface theme-text h-11 w-full rounded-[14px] border px-4 text-sm outline-none transition focus:border-primary/60"
               >
                 {years.map((year) => (
-                  <option key={year} value={year} className="bg-white">
+                  <option key={year} value={year} style={{ background: "var(--surface)", color: "var(--text-color)" }}>
                     {year}
                   </option>
                 ))}
@@ -116,10 +116,14 @@ function SaidasContent({ data }: { data: { saidas_por_mes: ExitItem[] | any[] } 
               <select
                 value={selectedMonth}
                 onChange={(event) => setSelectedMonth(event.target.value)}
-                className="h-11 w-full rounded-[14px] border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-primary/60 focus:bg-white"
+                className="theme-surface theme-text h-11 w-full rounded-[14px] border px-4 text-sm outline-none transition focus:border-primary/60"
               >
                 {monthsForYear.map((item) => (
-                  <option key={item.key} value={item.mes} className="bg-white">
+                  <option
+                    key={item.key}
+                    value={item.mes}
+                    style={{ background: "var(--surface)", color: "var(--text-color)" }}
+                  >
                     {item.mes}
                   </option>
                 ))}
@@ -129,10 +133,10 @@ function SaidasContent({ data }: { data: { saidas_por_mes: ExitItem[] | any[] } 
 
           {selectedExit ? (
             <div className="mt-6 space-y-4">
-              <div className="flex flex-col gap-3 rounded-[20px] border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="theme-soft-surface flex flex-col gap-3 rounded-[20px] border p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-lg font-semibold text-slate-900">{selectedExit.label}</p>
-                  <p className="text-sm text-slate-500">{selectedExit.clientes.length} saídas registradas</p>
+                  <p className="theme-text text-lg font-semibold">{selectedExit.label}</p>
+                  <p className="theme-muted text-sm">{selectedExit.clientes.length} saídas registradas</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {selectedExit.parcial ? <Badge tone="gray">Em aberto</Badge> : null}
@@ -146,7 +150,7 @@ function SaidasContent({ data }: { data: { saidas_por_mes: ExitItem[] | any[] } 
                 {selectedExit.clientes.map((cliente) => (
                   <span
                     key={`${selectedExit.key}-${cliente}`}
-                    className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+                    className="theme-surface theme-text rounded-full border px-3 py-2 text-sm"
                   >
                     {cliente}
                   </span>
@@ -154,7 +158,7 @@ function SaidasContent({ data }: { data: { saidas_por_mes: ExitItem[] | any[] } 
               </div>
             </div>
           ) : (
-            <div className="mt-6 rounded-[18px] border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+            <div className="theme-soft-surface theme-muted mt-6 rounded-[18px] border p-4 text-sm">
               Nenhum detalhe encontrado para o filtro atual.
             </div>
           )}

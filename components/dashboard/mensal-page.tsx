@@ -63,12 +63,12 @@ export function MensalPage() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} />
+                      <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
                       <YAxis
                         yAxisId="left"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "#64748b", fontSize: 12 }}
+                        tick={{ fill: "var(--muted-color)", fontSize: 12 }}
                         tickFormatter={(value) => `${value}%`}
                       />
                       <YAxis
@@ -76,7 +76,7 @@ export function MensalPage() {
                         orientation="right"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "#64748b", fontSize: 12 }}
+                        tick={{ fill: "var(--muted-color)", fontSize: 12 }}
                       />
                       <Tooltip content={<CustomTooltip />} />
                       <Area
@@ -107,8 +107,8 @@ export function MensalPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={saldoData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                      <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} />
+                      <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
                       <Tooltip content={<CustomTooltip />} />
                       <Line
                         type="monotone"
@@ -127,9 +127,9 @@ export function MensalPage() {
             <EvolucaoTable
               data={data}
               footer={
-                <div className="rounded-[18px] border border-blue-100 bg-blue-50 p-4">
+                <div className="theme-strong-surface rounded-[18px] border p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-primary">Leitura rápida</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-700">
+                  <p className="theme-text mt-2 text-sm leading-6">
                     {getSimpleMonthlyInsight(data.evolucao_mensal)}
                   </p>
                 </div>

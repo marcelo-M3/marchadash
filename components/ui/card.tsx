@@ -19,7 +19,7 @@ export function CardTitle({
   className,
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 className={cn("text-base font-semibold text-slate-900", className)} {...props} />;
+  return <h3 className={cn("theme-text text-base font-semibold", className)} {...props} />;
 }
 
 export function CardContent({

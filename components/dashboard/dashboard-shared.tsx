@@ -121,8 +121,8 @@ export function DashboardErrorState({
         <CircleAlert className="h-7 w-7" />
       </div>
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-slate-900">Falha ao carregar o dashboard</h2>
-        <p className="max-w-xl text-sm leading-6 text-slate-500">{message}</p>
+        <h2 className="theme-text text-xl font-semibold">Falha ao carregar o dashboard</h2>
+        <p className="theme-muted max-w-xl text-sm leading-6">{message}</p>
       </div>
       <Button onClick={onRetry}>Tentar novamente</Button>
     </Card>
@@ -141,19 +141,19 @@ export function CustomTooltip({
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="rounded-[18px] border border-slate-200 bg-white p-3 shadow-panel">
-      <p className="mb-2 text-sm font-semibold text-slate-900">{label}</p>
+    <div className="theme-surface rounded-[18px] border p-3 shadow-panel">
+      <p className="theme-text mb-2 text-sm font-semibold">{label}</p>
       <div className="space-y-1.5">
         {payload.map((item) => (
           <div key={`${item.name}-${item.value}`} className="flex items-center justify-between gap-8 text-xs">
-            <span className="flex items-center gap-2 text-slate-500">
+            <span className="theme-muted flex items-center gap-2">
               <span
                 className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: item.color ?? "#93c5fd" }}
               />
               {item.name}
             </span>
-            <span className="font-semibold text-slate-900">
+            <span className="theme-text font-semibold">
               {item.name.toLowerCase().includes("churn") || item.name.includes("%")
                 ? formatPercent(item.value)
                 : item.value}
@@ -175,16 +175,16 @@ export function InsightChip({
   tone?: "default" | "blue" | "green" | "yellow" | "red";
 }) {
   const toneClasses = {
-    default: "border-slate-200 bg-white text-slate-900",
-    blue: "border-blue-100 bg-blue-50 text-slate-900",
-    green: "border-emerald-100 bg-emerald-50 text-slate-900",
-    yellow: "border-amber-100 bg-amber-50 text-slate-900",
-    red: "border-rose-100 bg-rose-50 text-slate-900"
+    default: "theme-surface theme-text",
+    blue: "theme-strong-surface theme-text",
+    green: "chip-green",
+    yellow: "chip-yellow",
+    red: "chip-red"
   } as const;
 
   return (
     <div className={cn("rounded-[18px] border p-4", toneClasses[tone])}>
-      <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">{label}</p>
+      <p className="theme-muted text-[11px] uppercase tracking-[0.2em]">{label}</p>
       <p className="mt-2 text-sm font-semibold text-inherit">{value}</p>
     </div>
   );
@@ -225,15 +225,15 @@ export function MetricCard({
       <div className="relative">
         <CardHeader>
           <div>
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{title}</p>
+            <p className="theme-muted text-xs uppercase tracking-[0.16em]">{title}</p>
           </div>
-          <div className="rounded-full border border-slate-200 bg-slate-50 p-2 text-slate-700">
+          <div className="theme-soft-surface theme-text rounded-full border p-2">
             <Icon className="h-4 w-4" />
           </div>
         </CardHeader>
         <CardContent className="mt-6 space-y-3">
           <div className={cn("metric-number font-bold", toneClasses[tone])}>{value}</div>
-          <p className="max-w-[18rem] text-sm text-slate-500">{description}</p>
+          <p className="theme-muted max-w-[18rem] text-sm">{description}</p>
           <Badge tone={badgeTone[tone]} className="w-fit">
             <ArrowUpRight className="h-3 w-3" />
             {badge}
@@ -273,13 +273,13 @@ export function HealthDonut({
       </div>
       <div className="space-y-3">
         {data.map((item) => (
-          <div key={item.name} className="rounded-[18px] border border-slate-200 bg-slate-50 p-3">
+          <div key={item.name} className="theme-soft-surface rounded-[18px] border p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                <span className="text-sm font-medium text-slate-900">{item.name}</span>
+                <span className="theme-text text-sm font-medium">{item.name}</span>
               </div>
-              <span className="text-sm text-slate-500">{item.value}</span>
+              <span className="theme-muted text-sm">{item.value}</span>
             </div>
           </div>
         ))}
@@ -301,7 +301,7 @@ export function GestorStatusCard({ gestores }: { gestores: GestorMetric[] }) {
       <CardHeader>
         <div>
           <CardTitle>Distribuição de status</CardTitle>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="theme-muted mt-1 text-sm">
             Mostra quantos clientes estão bem, em atenção e em risco por gestor.
           </p>
         </div>
@@ -318,7 +318,7 @@ export function GestorStatusCard({ gestores }: { gestores: GestorMetric[] }) {
                 width={88}
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "#475569", fontSize: 12 }}
+                tick={{ fill: "var(--muted-color)", fontSize: 12 }}
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
@@ -352,7 +352,7 @@ export function GestorRadarCard({ gestores }: { gestores: GestorMetric[] }) {
       <CardHeader>
         <div>
           <CardTitle>Mapa de performance</CardTitle>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="theme-muted mt-1 text-sm">
             Compara taxa de sucesso, retenção relativa e estabilidade da carteira.
           </p>
         </div>
@@ -361,8 +361,8 @@ export function GestorRadarCard({ gestores }: { gestores: GestorMetric[] }) {
         <div className="h-[320px]">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart outerRadius="68%" data={radarData}>
-              <PolarGrid stroke="#e5eaf3" />
-              <PolarAngleAxis dataKey="gestor" tick={{ fill: "#475569", fontSize: 12 }} />
+              <PolarGrid stroke="var(--border-color)" />
+              <PolarAngleAxis dataKey="gestor" tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
               <Tooltip content={<CustomTooltip />} />
               <Radar dataKey="Taxa de sucesso" fill="#38bdf8" stroke="#38bdf8" fillOpacity={0.25} />
               <Radar dataKey="Retenção relativa" fill="#34d399" stroke="#34d399" fillOpacity={0.2} />
@@ -418,13 +418,13 @@ export function EvolucaoTable({
       <CardHeader>
         <div>
           <CardTitle>Detalhamento mensal</CardTitle>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="theme-muted mt-1 text-sm">
             Mostra base, entradas, saídas e churn mês a mês.
           </p>
         </div>
       </CardHeader>
       <CardContent className="mt-5 space-y-4">
-        <div className="overflow-hidden rounded-[18px] border border-slate-200 bg-white">
+        <div className="theme-surface overflow-hidden rounded-[18px] border">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
@@ -438,7 +438,7 @@ export function EvolucaoTable({
             <TableBody>
               {data.evolucao_mensal.map((row) => (
                 <TableRow key={row.mes}>
-                  <TableCell className="font-medium text-slate-900">{row.mes}</TableCell>
+                  <TableCell className="theme-text font-medium">{row.mes}</TableCell>
                   <TableCell>{row.base_inicio}</TableCell>
                   <TableCell className="text-emerald-600">{row.entradas ?? "—"}</TableCell>
                   <TableCell className="text-rose-600">-{row.saidas}</TableCell>
@@ -451,12 +451,12 @@ export function EvolucaoTable({
                   </TableCell>
                 </TableRow>
               ))}
-              <TableRow className="bg-slate-50 hover:bg-slate-50">
-                <TableCell className="font-semibold text-slate-900">Média</TableCell>
-                <TableCell colSpan={3} className="text-slate-500">
+              <TableRow className="theme-soft-surface">
+                <TableCell className="theme-text font-semibold">Média</TableCell>
+                <TableCell colSpan={3} className="theme-muted">
                   Apenas meses fechados
                 </TableCell>
-                <TableCell className="text-right font-semibold text-slate-900">
+                <TableCell className="theme-text text-right font-semibold">
                   {formatPercent(
                     completed.reduce((acc, item) => acc + (item.churn ?? 0), 0) /
                       Math.max(completed.length, 1)
@@ -486,7 +486,7 @@ export function SummaryCard({
       <CardHeader>
         <div>
           <CardTitle>{title}</CardTitle>
-          {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
+          {description ? <p className="theme-muted mt-1 text-sm">{description}</p> : null}
         </div>
       </CardHeader>
       <CardContent className="mt-5">{children}</CardContent>
