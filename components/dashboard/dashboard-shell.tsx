@@ -58,7 +58,7 @@ export function DashboardShell({
   }, [theme]);
 
   return (
-    <div className="min-h-screen bg-background theme-text">
+    <div className="theme-app min-h-screen theme-text">
       <div className="flex min-h-screen flex-col md:flex-row">
         <aside className="theme-sidebar border-b md:sticky md:top-0 md:h-screen md:w-[280px] md:border-b-0 md:border-r">
           <div className="flex h-full flex-col">

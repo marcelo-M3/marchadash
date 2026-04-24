@@ -88,6 +88,7 @@
 
 html {
   scroll-behavior: smooth;
+  background: var(--app-bg);
 }
 
 body {
@@ -140,6 +141,16 @@ input {
   box-shadow: 0 18px 40px var(--shadow-color) !important;
 }
 
+.recharts-tooltip-cursor {
+  fill: rgba(36, 107, 255, 0.08) !important;
+  stroke: rgba(36, 107, 255, 0.18) !important;
+}
+
+[data-theme="dark"] .recharts-tooltip-cursor {
+  fill: rgba(79, 140, 255, 0.12) !important;
+  stroke: rgba(79, 140, 255, 0.24) !important;
+}
+
 .scrollbar-subtle::-webkit-scrollbar {
   height: 10px;
   width: 10px;
@@ -174,6 +185,10 @@ input {
   border-color: var(--border-color);
 }
 
+.theme-app {
+  background: var(--app-bg);
+}
+
 .theme-border {
   border-color: var(--border-color);
 }
@@ -199,12 +214,12 @@ input {
 }
 
 .brand-logo {
-  width: 172px;
-  height: 44px;
+  width: 210px;
+  height: 74px;
   margin-inline: auto;
   background: var(--text-color);
-  -webkit-mask-image: url("/logomarcha.png");
-  mask-image: url("/logomarcha.png");
+  -webkit-mask-image: url("/logomarcha-cropped.png");
+  mask-image: url("/logomarcha-cropped.png");
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
