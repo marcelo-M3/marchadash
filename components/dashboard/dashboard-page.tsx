@@ -206,6 +206,31 @@ function CustomTooltip({
   );
 }
 
+function InsightChip({
+  label,
+  value,
+  tone = "default"
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "blue" | "green" | "yellow" | "red";
+}) {
+  const toneClasses = {
+    default: "border-white/10 bg-white/[0.04] text-slate-100",
+    blue: "border-sky-300/20 bg-sky-400/10 text-sky-100",
+    green: "border-emerald-300/20 bg-emerald-400/10 text-emerald-100",
+    yellow: "border-amber-300/20 bg-amber-400/10 text-amber-100",
+    red: "border-rose-300/20 bg-rose-400/10 text-rose-100"
+  } as const;
+
+  return (
+    <div className={cn("rounded-[18px] border p-4", toneClasses[tone])}>
+      <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-inherit">{value}</p>
+    </div>
+  );
+}
+
 function SectionShell({
   id,
   eyebrow,
@@ -552,6 +577,33 @@ export function DashboardPage() {
     [data]
   );
 
+  const quickSpotlights = useMemo(() => {
+    if (!data) return [];
+
+    const bestGestor = gestorPerformanceData[0];
+    const criticalMonth = monthlyExitVolumes
+      .slice()
+      .sort((a, b) => b.saidas - a.saidas)[0];
+
+    return [
+      {
+        label: "Gestor líder",
+        value: bestGestor ? `${bestGestor.nome} · ${formatPercent(bestGestor.taxa_sucesso)}` : "Sem leitura",
+        tone: "green" as const
+      },
+      {
+        label: "Mês mais sensível",
+        value: criticalMonth ? `${criticalMonth.mesCompleto} · ${criticalMonth.saidas} saídas` : "Sem leitura",
+        tone: "red" as const
+      },
+      {
+        label: "Mediana de retenção",
+        value: `${formatMonths(data.ltv_mediana)} meses`,
+        tone: "blue" as const
+      }
+    ];
+  }, [data, gestorPerformanceData, monthlyExitVolumes]);
+
   const scrollToSection = (id: SectionId) => {
     setActiveSection(id);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -668,6 +720,30 @@ export function DashboardPage() {
             </div>
           </header>
 
+          <div className="scrollbar-subtle mb-8 flex gap-3 overflow-x-auto pb-2 md:hidden">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeSection === item.id;
+
+              return (
+                <button
+                  key={`mobile-${item.id}`}
+                  type="button"
+                  onClick={() => scrollToSection(item.id)}
+                  className={cn(
+                    "inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm transition",
+                    isActive
+                      ? "border-sky-300/25 bg-sky-300/14 text-white"
+                      : "border-white/10 bg-white/[0.04] text-slate-300"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+
           {loading ? (
             <DashboardSkeleton />
           ) : error || !data ? (
@@ -751,6 +827,20 @@ export function DashboardPage() {
                               </div>
                             ))}
                           </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="p-5">
+                        <CardHeader>
+                          <div>
+                            <CardTitle>Sinais Prioritários</CardTitle>
+                            <p className="mt-1 text-sm text-slate-300">Três leituras instantâneas para orientar a próxima ação da liderança.</p>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="mt-3 grid gap-3">
+                          {quickSpotlights.map((item) => (
+                            <InsightChip key={item.label} label={item.label} value={item.value} tone={item.tone} />
+                          ))}
                         </CardContent>
                       </Card>
                     </div>
@@ -1030,6 +1120,19 @@ export function DashboardPage() {
                     </CardHeader>
                     <CardContent className="mt-5 space-y-5">
                       <MonthExitBar data={data.saidas_por_mes} />
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <InsightChip label="Meses com churn" value={String(data.saidas_por_mes.length)} />
+                        <InsightChip
+                          label="Maior volume"
+                          value={topExitMonths[0] ? `${topExitMonths[0].clientes.length} saídas` : "—"}
+                          tone="red"
+                        />
+                        <InsightChip
+                          label="Último fechamento"
+                          value={data.saidas_por_mes.at(-1)?.mes ?? "—"}
+                          tone="blue"
+                        />
+                      </div>
                       <div className="grid gap-3">
                         {topExitMonths.map((month) => (
                           <div key={month.mes} className="rounded-[18px] border border-white/10 bg-white/[0.04] p-4">
