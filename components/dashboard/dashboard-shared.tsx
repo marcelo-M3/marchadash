@@ -226,7 +226,7 @@ export function MetricCard({
     <Card
       className={cn(
         "relative overflow-hidden p-5 transition duration-200",
-        href ? "hover:-translate-y-0.5 hover:shadow-panel" : ""
+        href ? "hover:-translate-y-0.5 hover:border-primary/30" : ""
       )}
     >
       <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50", healthGradient[tone])} />

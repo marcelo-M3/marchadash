@@ -123,6 +123,10 @@ input {
   box-shadow: 0 18px 40px var(--shadow-color);
 }
 
+[data-theme="dark"] .panel-card {
+  box-shadow: none;
+}
+
 .metric-number {
   font-size: clamp(2.25rem, 3vw, 3rem);
   line-height: 1;
@@ -139,6 +143,10 @@ input {
   background: var(--tooltip-bg) !important;
   color: var(--text-color) !important;
   box-shadow: 0 18px 40px var(--shadow-color) !important;
+}
+
+[data-theme="dark"] .recharts-default-tooltip {
+  box-shadow: none !important;
 }
 
 .recharts-tooltip-cursor {
@@ -211,6 +219,10 @@ input {
 
 .theme-icon-surface {
   background: var(--icon-surface);
+}
+
+[data-theme="dark"] .shadow-panel {
+  box-shadow: none !important;
 }
 
 .brand-logo {
