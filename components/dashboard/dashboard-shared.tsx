@@ -44,18 +44,11 @@ export const statusColors = {
   critico: "var(--danger-color)"
 };
 
-const healthGradient = {
-  blue: "from-sky-400/12 via-blue-400/0 to-transparent",
-  green: "from-emerald-400/12 via-emerald-300/0 to-transparent",
-  yellow: "from-amber-400/12 via-yellow-300/0 to-transparent",
-  red: "from-rose-400/12 via-red-300/0 to-transparent"
-};
-
 const cardTone = {
-  blue: "border-[#64a7fe] bg-[#0d1732]",
-  green: "border-[#74d183] bg-[#102223]",
-  yellow: "border-[#efc42c] bg-[#202020]",
-  red: "border-[#fe576b] bg-[#3c1820]"
+  blue: "metric-card-blue",
+  green: "metric-card-green",
+  yellow: "metric-card-yellow",
+  red: "metric-card-red"
 } as const;
 
 const metricTone = {
@@ -163,7 +156,7 @@ export function HoverInfo({ text }: { text: string }) {
   return (
     <span className="group relative inline-flex items-center">
       <CircleHelp className="theme-muted h-4 w-4 cursor-help" />
-      <span className="flat-tooltip pointer-events-none absolute bottom-full right-0 z-50 mb-3 hidden w-[260px] rounded-[14px] px-4 py-3 text-left text-xs font-normal leading-5 text-[var(--text-color)] group-hover:block">
+      <span className="flat-tooltip pointer-events-none absolute bottom-full right-0 z-50 mb-3 hidden w-[260px] rounded-[14px] px-4 py-3 text-left text-xs font-normal leading-5 text-[var(--tooltip-text)] group-hover:block">
         {text}
       </span>
     </span>
@@ -240,7 +233,7 @@ export function CustomTooltip({
 
   return (
     <div className="flat-tooltip rounded-[16px] p-3">
-      <p className="theme-text mb-2 text-sm font-semibold">{tooltipLabel}</p>
+      <p className="mb-2 text-sm font-semibold text-[var(--tooltip-text)]">{tooltipLabel}</p>
       <div className="space-y-1.5">
         {payload.map((item) => {
           const rawName = item.name.toLowerCase();
@@ -257,14 +250,14 @@ export function CustomTooltip({
 
           return (
             <div key={`${item.name}-${item.value}`} className="flex items-center justify-between gap-8 text-xs">
-              <span className="theme-muted flex items-center gap-2">
+              <span className="flex items-center gap-2 text-[var(--tooltip-muted)]">
                 <span
                   className="h-2.5 w-2.5 rounded-full"
                   style={{ backgroundColor: resolveSeriesColor(item) }}
                 />
                 {item.name}
               </span>
-              <span className="theme-text font-semibold">{valueText}</span>
+              <span className="font-semibold text-[var(--tooltip-text)]">{valueText}</span>
             </div>
           );
         })}
@@ -352,7 +345,7 @@ export function MetricCard({
   description: string;
   badge: string;
   icon: LucideIcon;
-  tone: keyof typeof healthGradient;
+  tone: keyof typeof cardTone;
   href?: Route;
 }) {
   const card = (
@@ -362,18 +355,17 @@ export function MetricCard({
         cardTone[tone]
       )}
     >
-      <div className={cn("absolute inset-0 bg-gradient-to-br opacity-60", healthGradient[tone])} />
       <Icon
         className="pointer-events-none absolute right-5 top-6 h-16 w-16"
         style={{ color: iconTone[tone], opacity: 0.14 }}
       />
       <div className="relative">
         <CardHeader className="pr-16">
-          <p className="theme-muted text-[11px] font-medium uppercase tracking-[0.18em]">{title}</p>
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-current/70">{title}</p>
         </CardHeader>
         <CardContent className="mt-5 space-y-3">
           <div className={cn("metric-number font-bold", metricTone[tone])}>{value}</div>
-          <p className="theme-muted max-w-[18rem] text-sm leading-6">{description}</p>
+          <p className="max-w-[18rem] text-sm leading-6 text-current/72">{description}</p>
           <Badge tone={badgeTone[tone]} className="w-fit">
             <ArrowUpRight className="h-3 w-3" />
             {badge}
@@ -468,56 +460,61 @@ export function OrigemMixCard({
     ...item,
     color: palette[index] || item.color
   }));
-  const total = normalized.reduce((acc, item) => acc + item.value, 0);
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[minmax(240px,0.82fr)_minmax(0,1fr)]">
-      <div className="theme-soft-surface flex min-h-[330px] flex-col items-center justify-center rounded-[26px] border px-6 py-6">
-        <div className="h-[240px] w-[240px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={normalized}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={56}
-                outerRadius={96}
-                stroke="var(--surface)"
-                strokeWidth={6}
-                paddingAngle={2}
-              >
-                {normalized.map((entry) => (
-                  <Cell key={entry.name} fill={entry.color} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="-mt-6 text-center">
-          <p className="section-kicker">Carteira ativa</p>
-          <p className="display-heading theme-text mt-2 text-[42px] font-semibold">{total}</p>
-          <p className="theme-muted text-sm">clientes distribuídos por origem</p>
-        </div>
+    <div className="space-y-5">
+      <div className="mx-auto h-[320px] max-w-[420px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={normalized}
+              dataKey="value"
+              nameKey="name"
+              innerRadius={0}
+              outerRadius={118}
+              stroke="var(--surface)"
+              strokeWidth={4}
+              paddingAngle={2}
+              labelLine={false}
+              label={({ cx, cy, midAngle, outerRadius, payload }) => {
+                if (!cx || !cy || !outerRadius || !payload?.percent || payload.percent < 6) return null;
+                const radius = outerRadius * 0.58;
+                const x = cx + radius * Math.cos((-midAngle * Math.PI) / 180);
+                const y = cy + radius * Math.sin((-midAngle * Math.PI) / 180);
+                const textColor = payload.color === "var(--origin-ring-3)" || payload.color === "var(--origin-ring-4)" ? "#0f172a" : "#ffffff";
+                return (
+                  <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" fill={textColor} fontSize="18" fontWeight={700}>
+                    {formatPercent(payload.percent)}
+                  </text>
+                );
+              }}
+            >
+              {normalized.map((entry) => (
+                <Cell key={entry.name} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null;
+                const item = payload[0]?.payload as (typeof normalized)[number];
+                return (
+                  <div className="flat-tooltip rounded-[16px] p-3">
+                    <p className="text-sm font-semibold text-[var(--tooltip-text)]">{item.name}</p>
+                    <p className="mt-1 text-xs text-[var(--tooltip-muted)]">{item.value} clientes</p>
+                  </div>
+                );
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
 
-      <div className="grid content-start gap-3">
+      <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-center">
         {normalized.map((item) => (
-          <div key={`${item.name}-card`} className="theme-soft-surface rounded-[22px] border p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                  <p className="theme-text truncate text-sm font-semibold">{item.name}</p>
-                </div>
-                <p className="theme-muted mt-1 text-xs">Quantidade de clientes</p>
-              </div>
-              <div className="text-right">
-                <p className="theme-text text-sm font-semibold">{formatPercent(item.percent)}</p>
-                <p className="theme-muted text-xs">{item.value} clientes</p>
-              </div>
-            </div>
-            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-[var(--origin-track)]">
-              <div className="h-full rounded-full" style={{ width: `${item.percent}%`, backgroundColor: item.color }} />
+          <div key={`${item.name}-legend`} className="min-w-[140px]">
+            <div className="inline-flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+              <p className="theme-text text-sm font-semibold">{item.name}</p>
             </div>
           </div>
         ))}
@@ -788,7 +785,7 @@ export function MonthExitBar({ data }: { data: SaidasPorMes[] }) {
           <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
           <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="saidas" name="Saídas" radius={[10, 10, 0, 0]}>
+          <Bar dataKey="saidas" name="Saídas" radius={[6, 6, 2, 2]}>
             {monthData.map((entry) => (
               <Cell
                 key={`${entry.tooltipLabel}-${entry.saidas}`}
@@ -890,7 +887,7 @@ export function LtvDistributionChart({
           />
           <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="quantidade" name="Clientes" fill="url(#ltvDistribution)" radius={[14, 14, 4, 4]} barSize={42} />
+          <Bar dataKey="quantidade" name="Clientes" fill="url(#ltvDistribution)" radius={[6, 6, 2, 2]} barSize={42} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -908,14 +905,14 @@ export function HealthByOriginChart({
     <div>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis dataKey={labelKey} axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
+          <BarChart layout="vertical" data={data} margin={{ top: 8, right: 8, left: 8, bottom: 0 }} barSize={22}>
+            <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+            <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
+            <YAxis dataKey={labelKey} type="category" width={128} axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="bom" name="Bom" stackId="health" fill="#39c56b" radius={[8, 0, 0, 8]} />
+            <Bar dataKey="bom" name="Bom" stackId="health" fill="#3bb86b" radius={[6, 0, 0, 6]} />
             <Bar dataKey="alerta" name="Alerta" stackId="health" fill="#f0b93a" />
-            <Bar dataKey="critico" name="Crítico" stackId="health" fill="#f25b71" radius={[0, 8, 8, 0]} />
+            <Bar dataKey="critico" name="Crítico" stackId="health" fill="#ef5b72" radius={[0, 6, 6, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -955,7 +952,7 @@ export function ChurnByDimensionChart({
                 dataKey={key}
                 name={key}
                 fill={chartPalette[index % chartPalette.length]}
-                radius={[8, 8, 0, 0]}
+                radius={[6, 6, 2, 2]}
                 maxBarSize={20}
               />
             ))}
@@ -1049,8 +1046,10 @@ export function EvolucaoTable({
                 </TableRow>
               ))}
               <TableRow className="theme-soft-surface">
-                <TableCell className="theme-text font-semibold">Média</TableCell>
-                <TableCell colSpan={3} className="theme-muted">Apenas meses fechados</TableCell>
+                <TableCell className="theme-text font-semibold">Resumo</TableCell>
+                <TableCell className="theme-text">{Math.round(rows.reduce((acc, item) => acc + item.base_inicio, 0) / Math.max(rows.length, 1))}</TableCell>
+                <TableCell className="theme-text text-emerald-600">+{rows.reduce((acc, item) => acc + (item.entradas ?? 0), 0)}</TableCell>
+                <TableCell className="theme-text text-rose-600">-{rows.reduce((acc, item) => acc + item.saidas, 0)}</TableCell>
                 <TableCell className="theme-text text-right font-semibold">
                   {formatPercent(
                     completed.reduce((acc, item) => acc + (item.churn ?? 0), 0) / Math.max(completed.length, 1)

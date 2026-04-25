@@ -33,6 +33,8 @@
   --shadow-color: rgba(15, 23, 42, 0.06);
   --tooltip-bg: #151b2d;
   --tooltip-border: #23293b;
+  --tooltip-text: #f8fbff;
+  --tooltip-muted: #c7d1ea;
   --primary-color: #246bff;
   --success-color: #16a34a;
   --warning-color: #d97706;
@@ -60,6 +62,8 @@
   --shadow-color: rgba(5, 8, 17, 0.36);
   --tooltip-bg: #151b2d;
   --tooltip-border: #23293b;
+  --tooltip-text: #f8fbff;
+  --tooltip-muted: #c7d1ea;
   --primary-color: #1a68ff;
   --success-color: #61d975;
   --warning-color: #ffc603;
@@ -95,6 +99,38 @@
   color: #0f172a;
 }
 
+.metric-card-blue {
+  border: 1px solid rgba(36, 107, 255, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(36, 107, 255, 0.18), transparent 42%),
+    linear-gradient(160deg, #f3f7ff 0%, #dceafe 100%);
+  color: #0f172a;
+}
+
+.metric-card-green {
+  border: 1px solid rgba(22, 163, 74, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(22, 163, 74, 0.18), transparent 42%),
+    linear-gradient(160deg, #f3fff7 0%, #dcfce7 100%);
+  color: #0f172a;
+}
+
+.metric-card-yellow {
+  border: 1px solid rgba(217, 119, 6, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(217, 119, 6, 0.16), transparent 42%),
+    linear-gradient(160deg, #fff9ec 0%, #fde68a 100%);
+  color: #0f172a;
+}
+
+.metric-card-red {
+  border: 1px solid rgba(220, 38, 38, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(220, 38, 38, 0.18), transparent 42%),
+    linear-gradient(160deg, #fff3f4 0%, #fecdd3 100%);
+  color: #0f172a;
+}
+
 [data-theme="dark"] .chip-green {
   border-color: #74d183;
   background: #102223;
@@ -116,6 +152,42 @@
 [data-theme="dark"] .chip-red {
   border-color: #fe576b;
   background: #3c1820;
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .metric-card-blue {
+  border-color: rgba(100, 167, 254, 0.28);
+  background:
+    radial-gradient(circle at top right, rgba(100, 167, 254, 0.18), transparent 38%),
+    linear-gradient(160deg, rgba(13, 23, 50, 0.84) 0%, rgba(14, 30, 66, 0.62) 100%);
+  backdrop-filter: blur(18px);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .metric-card-green {
+  border-color: rgba(116, 209, 131, 0.28);
+  background:
+    radial-gradient(circle at top right, rgba(97, 217, 117, 0.16), transparent 38%),
+    linear-gradient(160deg, rgba(16, 34, 35, 0.84) 0%, rgba(12, 42, 31, 0.62) 100%);
+  backdrop-filter: blur(18px);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .metric-card-yellow {
+  border-color: rgba(239, 196, 44, 0.26);
+  background:
+    radial-gradient(circle at top right, rgba(255, 198, 3, 0.16), transparent 38%),
+    linear-gradient(160deg, rgba(32, 32, 32, 0.84) 0%, rgba(46, 36, 8, 0.62) 100%);
+  backdrop-filter: blur(18px);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .metric-card-red {
+  border-color: rgba(254, 87, 107, 0.26);
+  background:
+    radial-gradient(circle at top right, rgba(255, 45, 69, 0.18), transparent 38%),
+    linear-gradient(160deg, rgba(60, 24, 32, 0.86) 0%, rgba(50, 18, 28, 0.64) 100%);
+  backdrop-filter: blur(18px);
   color: #f8fafc;
 }
 
@@ -295,4 +367,5 @@ input {
   background: var(--tooltip-bg);
   border: 1px solid var(--tooltip-border);
   box-shadow: 0 16px 30px rgba(5, 8, 17, 0.18);
+  color: var(--tooltip-text);
 }

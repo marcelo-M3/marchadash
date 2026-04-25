@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { BarChart3, CalendarRange, Users } from "lucide-react";
 import {
-  Area,
   CartesianGrid,
   ComposedChart,
   Line,
@@ -24,7 +23,9 @@ import {
   shortMonthLabel,
 } from "@/components/dashboard/dashboard-shared";
 import { BaseClienteDetalhado, ClientesDashboardData, EvolucaoMensal } from "@/lib/types";
-import { formatPercent } from "@/lib/utils";
+
+type ChartViewMode = "last12" | "period";
+type EntryViewMode = "last6" | "period";
 
 function parseEvolutionMonth(label: string) {
   const [mes, ano] = label.split("/");
@@ -72,6 +73,18 @@ function fullMonthLabel(date: Date) {
 
 const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
+function filterRowsByPeriod<T extends { ano?: string; mesNome?: string; tooltipLabel?: string }>(
+  rows: T[],
+  year: string,
+  month: string
+) {
+  return rows.filter((item) => {
+    if (item.ano !== year) return false;
+    if (month === "all") return true;
+    return item.mesNome === month;
+  });
+}
+
 export function MensalPage() {
   return (
     <DashboardDataPage
@@ -84,7 +97,12 @@ export function MensalPage() {
 }
 
 function MensalContent({ data }: { data: ClientesDashboardData }) {
+  const [selectedChartMode, setSelectedChartMode] = useState<ChartViewMode>("last12");
   const [selectedChartYear, setSelectedChartYear] = useState("");
+  const [selectedChartMonth, setSelectedChartMonth] = useState("all");
+  const [selectedEntryMode, setSelectedEntryMode] = useState<EntryViewMode>("last6");
+  const [selectedEntryYear, setSelectedEntryYear] = useState("");
+  const [selectedEntryMonth, setSelectedEntryMonth] = useState("all");
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("all");
   const monthRows = useMemo<MonthlyRow[]>(
@@ -111,6 +129,10 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
     () => monthRows.filter((item) => item.ano === selectedYear),
     [monthRows, selectedYear]
   );
+  const chartMonthsForYear = useMemo<MonthlyRow[]>(
+    () => monthRows.filter((item) => item.ano === selectedChartYear),
+    [monthRows, selectedChartYear]
+  );
   const filteredRows = useMemo<MonthlyRow[]>(
     () =>
       monthsForYear.filter((item) =>
@@ -123,6 +145,7 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
     if (!years.length) return;
     setSelectedYear((current) => (years.includes(current) ? current : years[0]));
     setSelectedChartYear((current) => (years.includes(current) ? current : years[0]));
+    setSelectedEntryYear((current) => (years.includes(current) ? current : years[0]));
   }, [years]);
 
   useEffect(() => {
@@ -131,9 +154,18 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
     setSelectedMonth(monthExists || selectedMonth === "all" ? selectedMonth : "all");
   }, [monthsForYear, selectedMonth]);
 
-  const chartYearRows = monthRows.filter((item) => item.ano === selectedChartYear);
-  const lastTwelveRows = (chartYearRows.length ? chartYearRows : monthRows).slice(-12);
-  const chartRows = lastTwelveRows.map((item) => ({
+  useEffect(() => {
+    if (!chartMonthsForYear.length) return;
+    const monthExists = chartMonthsForYear.some((item) => item.mesNome === selectedChartMonth);
+    setSelectedChartMonth(monthExists || selectedChartMonth === "all" ? selectedChartMonth : "all");
+  }, [chartMonthsForYear, selectedChartMonth]);
+
+  const chartPeriodRows =
+    selectedChartMode === "last12"
+      ? monthRows.slice(-12)
+      : filterRowsByPeriod(monthRows, selectedChartYear, selectedChartMonth);
+
+  const chartRows = chartPeriodRows.map((item) => ({
     ...item,
     axisLabel: shortMonthLabel(item.mesNome)
   }));
@@ -178,9 +210,7 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
       .slice(0, 4)
       .map(([name]) => name);
 
-    const months = Array.from(new Set(records.map((record) => buildMonthKey(record.entry!))))
-      .sort()
-      .filter((key) => key.startsWith(`${selectedChartYear || years[0]}`));
+    const months = Array.from(new Set(records.map((record) => buildMonthKey(record.entry!)))).sort();
 
     return months.map((key) => {
       const year = Number(key.slice(0, 4));
@@ -199,18 +229,105 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
 
       return row;
     });
-  }, [baseClientes, selectedChartYear, years]);
+  }, [baseClientes]);
+
+  const entryRows = useMemo(() => {
+    const parsed = entriesByOrigin.map((row) => {
+      const parsedPeriod = parseEvolutionMonth(String(row.tooltipLabel ?? ""));
+      return {
+        ...row,
+        ano: parsedPeriod.ano,
+        mesNome: parsedPeriod.mes
+      };
+    });
+
+    return selectedEntryMode === "last6"
+      ? parsed.slice(-6)
+      : filterRowsByPeriod(parsed, selectedEntryYear, selectedEntryMonth);
+  }, [entriesByOrigin, selectedEntryMode, selectedEntryYear, selectedEntryMonth]);
+
+  useEffect(() => {
+    const parsed = entriesByOrigin.map((row) => parseEvolutionMonth(String(row.tooltipLabel ?? "")));
+    const months = parsed.filter((row) => row.ano === selectedEntryYear).map((row) => row.mes);
+    const exists = months.includes(selectedEntryMonth);
+    setSelectedEntryMonth(exists || selectedEntryMonth === "all" ? selectedEntryMonth : "all");
+  }, [entriesByOrigin, selectedEntryYear, selectedEntryMonth]);
 
   const originPeak = useMemo(() => {
     const totals = new Map<string, number>();
-    entriesByOrigin.forEach((row) => {
+    entryRows.forEach((row) => {
       Object.entries(row).forEach(([key, value]) => {
-        if (key === "mes" || key === "tooltipLabel") return;
+        if (key === "mes" || key === "tooltipLabel" || key === "ano" || key === "mesNome") return;
         totals.set(key, (totals.get(key) ?? 0) + Number(value));
       });
     });
     return Array.from(totals.entries()).sort((a, b) => b[1] - a[1])[0] ?? null;
-  }, [entriesByOrigin]);
+  }, [entryRows]);
+
+  const chartInsight = useMemo(() => {
+    if (!chartRows.length) {
+      return "Ainda não há meses suficientes para comparar base, entradas e saídas no período escolhido.";
+    }
+    const topEntry = [...chartRows].sort((a, b) => (b.entradas ?? 0) - (a.entradas ?? 0))[0];
+    const topExit = [...chartRows].sort((a, b) => b.saidas - a.saidas)[0];
+    const topBase = [...chartRows].sort((a, b) => b.base_inicio - a.base_inicio)[0];
+    return `${topEntry.tooltipLabel} teve mais entradas (${topEntry.entradas ?? 0}), ${topExit.tooltipLabel} concentrou mais saídas (${topExit.saidas}) e ${topBase.tooltipLabel} registrou a maior base (${topBase.base_inicio}).`;
+  }, [chartRows]);
+
+  const renderPeriodControls = (
+    mode: ChartViewMode | EntryViewMode,
+    setMode: (value: any) => void,
+    year: string,
+    setYear: (value: string) => void,
+    month: string,
+    setMonth: (value: string) => void,
+    modeLabel: string,
+    months: string[]
+  ) => (
+    <div className="flex flex-wrap items-center gap-2">
+      <select
+        value={mode}
+        onChange={(event) => setMode(event.target.value)}
+        className="theme-soft-surface theme-text h-10 rounded-full border px-4 text-sm outline-none"
+      >
+        <option value={modeLabel === "last6" ? "last6" : "last12"} style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+          {modeLabel === "last6" ? "Últimos 6 meses" : "Últimos 12 meses"}
+        </option>
+        <option value="period" style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+          Período
+        </option>
+      </select>
+      {mode === "period" ? (
+        <>
+          <select
+            value={year}
+            onChange={(event) => setYear(event.target.value)}
+            className="theme-soft-surface theme-text h-10 rounded-full border px-4 text-sm outline-none"
+          >
+            {years.map((item) => (
+              <option key={`period-${modeLabel}-${item}`} value={item} style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+                {item}
+              </option>
+            ))}
+          </select>
+          <select
+            value={month}
+            onChange={(event) => setMonth(event.target.value)}
+            className="theme-soft-surface theme-text h-10 rounded-full border px-4 text-sm outline-none"
+          >
+            <option value="all" style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+              Todos os meses
+            </option>
+            {months.map((item) => (
+              <option key={`period-month-${modeLabel}-${item}`} value={item} style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </>
+      ) : null}
+    </div>
+  );
 
   return (
     <div className="space-y-8 pb-10">
@@ -240,31 +357,23 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <SummaryCard
-          title="Base e churn dos últimos 12 meses"
-          description="Mostra o tamanho da base e o churn ao longo dos últimos 12 meses."
-          actions={
-            <select
-              value={selectedChartYear}
-              onChange={(event) => setSelectedChartYear(event.target.value)}
-              className="theme-soft-surface theme-text h-10 rounded-full border px-4 text-sm outline-none"
-            >
-              {years.map((year) => (
-                <option key={`chart-${year}`} value={year} style={{ background: "var(--surface)", color: "var(--text-color)" }}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          }
+          title="Entradas, saídas e base"
+          description="Análise o tamanho da base, entrada e saída de clientes por período."
+          actions={renderPeriodControls(
+            selectedChartMode,
+            setSelectedChartMode,
+            selectedChartYear,
+            setSelectedChartYear,
+            selectedChartMonth,
+            setSelectedChartMonth,
+            "last12",
+            chartMonthsForYear.map((item) => item.mesNome)
+          )}
         >
+          <div className="space-y-4">
           <div className="h-[380px]">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={chartRows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="monthlyBase" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--primary-color)" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="var(--primary-color)" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="axisLabel" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
                 <YAxis
@@ -272,42 +381,61 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fill: "var(--muted-color)", fontSize: 12 }}
-                  tickFormatter={(value) => `${value}%`}
-                />
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "var(--muted-color)", fontSize: 12 }}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Area
-                  yAxisId="right"
+                <Line
+                  yAxisId="left"
                   type="monotone"
-                  dataKey="base_inicio"
-                  name="Base"
-                  fill="url(#monthlyBase)"
-                  stroke="var(--primary-color)"
-                  strokeWidth={2}
+                  dataKey="entradas"
+                  name="Entradas"
+                  stroke="#61d975"
+                  strokeWidth={3}
+                  dot={{ r: 4, fill: "#61d975", stroke: "var(--surface)", strokeWidth: 2 }}
                 />
                 <Line
                   yAxisId="left"
                   type="monotone"
-                  dataKey="churn"
-                  name="Churn %"
-                  stroke="var(--danger-color)"
+                  dataKey="saidas"
+                  name="Saídas"
+                  stroke="#f0b93a"
                   strokeWidth={3}
-                  dot={{ r: 4, fill: "var(--danger-color)", stroke: "var(--surface)", strokeWidth: 2 }}
+                  dot={{ r: 4, fill: "#f0b93a", stroke: "var(--surface)", strokeWidth: 2 }}
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="base_inicio"
+                  name="Base"
+                  stroke="var(--primary-color)"
+                  strokeWidth={3}
+                  dot={{ r: 4, fill: "var(--primary-color)", stroke: "var(--surface)", strokeWidth: 2 }}
                 />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
+          <div className="theme-strong-surface rounded-[18px] border p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-primary">Leitura rápida</p>
+            <p className="theme-text mt-2 text-sm leading-6">{chartInsight}</p>
+          </div>
+          </div>
         </SummaryCard>
 
-        <SummaryCard title="Entrada de clientes por origem" description="Mostra, mês a mês, quais canais de origem trouxeram mais clientes para dentro da empresa.">
+        <SummaryCard
+          title="Entrada de clientes por origem"
+          description="Mostra, mês a mês, quais canais de origem trouxeram mais clientes para dentro da empresa."
+          actions={renderPeriodControls(
+            selectedEntryMode,
+            setSelectedEntryMode,
+            selectedEntryYear,
+            setSelectedEntryYear,
+            selectedEntryMonth,
+            setSelectedEntryMonth,
+            "last6",
+            Array.from(new Set(entriesByOrigin.map((row) => parseEvolutionMonth(String(row.tooltipLabel ?? "")).mes).filter(Boolean)))
+          )}
+        >
           <div className="space-y-4">
-            <ChurnByDimensionChart data={entriesByOrigin} palette={["#1a68ff", "#4b8dff", "#7ab0ff", "#c9cfe5"]} />
+            <ChurnByDimensionChart data={entryRows} palette={["#1a68ff", "#4b8dff", "#7ab0ff", "#c9cfe5"]} />
             <div className="theme-strong-surface rounded-[18px] border p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-primary">Leitura rápida</p>
               <p className="theme-text mt-2 text-sm leading-6">
@@ -322,7 +450,7 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
 
       <SummaryCard
         title="Status dos clientes ativos por nicho"
-        description="Análise da qualidade dos clientes ativos por nicho, separando quem está bem, em alerta e em situação crítica."
+        description="Análise da qualidade dos clientes ativos por nicho, separados por bom, alerta e crítico."
       >
         <HealthByOriginChart data={healthByNicho} labelKey="nicho" />
       </SummaryCard>

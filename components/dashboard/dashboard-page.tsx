@@ -7,7 +7,6 @@ import {
   buildGestorMetricsFromBase,
   GestorPerformanceChart,
   HealthByOriginChart,
-  InsightChip,
   LtvDistributionChart,
   MetricCard,
   OrigemMixCard,
@@ -15,7 +14,7 @@ import {
   SummaryCard
 } from "@/components/dashboard/dashboard-shared";
 import type { BaseClienteDetalhado } from "@/lib/types";
-import { formatMonths, formatPercent, formatSignedPercent } from "@/lib/utils";
+import { formatPercent, formatSignedPercent } from "@/lib/utils";
 
 export function DashboardPage() {
   return (
@@ -123,36 +122,8 @@ export function DashboardPage() {
               </div>
             </section>
 
-            <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-              <SummaryCard title="Resumo da carteira">
-                <div>
-                  <div className="flex items-end gap-3">
-                    <span className="theme-text text-[55px] font-semibold leading-none tracking-[-0.06em]">{data.clientes_ativos}</span>
-                    <span className="theme-muted pb-2 text-lg">clientes ativos</span>
-                  </div>
-                  <p className="theme-muted mt-4 max-w-xl text-sm leading-6">
-                    Base executiva usada para consolidar retenção, saúde e permanência média da carteira.
-                  </p>
-                  <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                    <InsightChip
-                      label="Taxa de sucesso"
-                      value={formatPercent(data.taxa_sucesso)}
-                      tone="green"
-                      tooltip="Percentual de clientes em status Bom dentro da base ativa com STATUS CLIENTE preenchido. Cálculo: clientes_bons / clientes_ativos."
-                    />
-                    <InsightChip
-                      label="LTV médio"
-                      value={`${formatMonths(data.ltv_medio)} meses`}
-                      tone="blue"
-                      tooltip="Tempo médio de permanência da base ativa. Usa PERÍODO quando existe; se não, calcula pela diferença entre DATA PLANEJAMENTO e SAÍDA CLIENTE ou a data atual."
-                    />
-                  </div>
-                </div>
-              </SummaryCard>
-
-              <SummaryCard
-                title="Índice de sucesso"
-              >
+            <section>
+              <SummaryCard title="Índice de sucesso">
                 <SuccessGaugeCard
                   score={data.taxa_sucesso}
                   bom={data.perc_bons}
@@ -174,7 +145,7 @@ export function DashboardPage() {
                 <GestorPerformanceChart gestores={gestores} />
               </SummaryCard>
 
-              <SummaryCard title="Origem dos Clientes" description="Análise do canal de origem dos clientes ativos da base atual.">
+              <SummaryCard title="Origem dos clientes ativos" description="Análise do canal de origem dos clientes ativos da base atual.">
                 <OrigemMixCard data={origemData} />
               </SummaryCard>
               </div>
