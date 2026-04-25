@@ -471,7 +471,7 @@ export function OrigemMixCard({
 
   return (
     <div className="space-y-5">
-      <div className="mx-auto h-[360px] max-w-[460px]">
+      <div className="mx-auto h-[392px] max-w-[520px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <defs>
@@ -485,7 +485,8 @@ export function OrigemMixCard({
                   y2="1"
                 >
                   <stop offset="0%" stopColor={item.color} stopOpacity={0.98} />
-                  <stop offset="100%" stopColor={item.color} stopOpacity={0.74} />
+                  <stop offset="55%" stopColor={item.color} stopOpacity={0.82} />
+                  <stop offset="100%" stopColor={item.color} stopOpacity={0.56} />
                 </linearGradient>
               ))}
             </defs>
@@ -494,7 +495,7 @@ export function OrigemMixCard({
               dataKey="value"
               nameKey="name"
               innerRadius={0}
-              outerRadius={108}
+              outerRadius={128}
               stroke="transparent"
               strokeWidth={0}
               paddingAngle={0}
@@ -506,14 +507,14 @@ export function OrigemMixCard({
                 const percentY = cy + percentRadius * Math.sin((-midAngle * Math.PI) / 180);
                 const direction = Math.cos((-midAngle * Math.PI) / 180) >= 0 ? 1 : -1;
                 const lineStartRadius = outerRadius + 4;
-                const lineMidRadius = outerRadius + 24;
+                const lineMidRadius = outerRadius + 30;
                 const startX = cx + lineStartRadius * Math.cos((-midAngle * Math.PI) / 180);
                 const startY = cy + lineStartRadius * Math.sin((-midAngle * Math.PI) / 180);
                 const midX = cx + lineMidRadius * Math.cos((-midAngle * Math.PI) / 180);
                 const midY = cy + lineMidRadius * Math.sin((-midAngle * Math.PI) / 180);
-                const endX = midX + direction * 28;
+                const endX = midX + direction * 36;
                 const endY = midY;
-                const labelX = endX + direction * 10;
+                const labelX = endX + direction * 12;
                 const labelY = endY;
                 const textAnchor = direction > 0 ? "start" : "end";
                 return (
@@ -600,10 +601,16 @@ export function SuccessGaugeCard({
         ? "var(--warning-color)"
         : "var(--danger-color)";
   const FaceIcon = levelTone === "green" ? Smile : levelTone === "yellow" ? Meh : Frown;
+  const statusNote =
+    levelTone === "green"
+      ? "Carteira em equilíbrio"
+      : levelTone === "yellow"
+        ? "Momento de atenção"
+        : "Risco de churn elevado";
 
   return (
     <div className="mx-auto flex max-w-[360px] flex-col items-center">
-      <div className="relative h-[270px] w-full">
+      <div className="relative h-[292px] w-full">
         <svg viewBox="0 0 200 190" className="h-full w-full overflow-visible">
           <path
             d={gaugePath}
@@ -624,20 +631,26 @@ export function SuccessGaugeCard({
           />
         </svg>
 
-        <div className="absolute inset-x-0 bottom-5 flex flex-col items-center text-center">
+        <div className="absolute inset-x-0 bottom-2 flex flex-col items-center text-center">
           <div
-            className="mb-5 flex h-11 w-11 items-center justify-center rounded-full"
-            style={{ backgroundColor: `${scoreColor}24`, color: scoreColor }}
+            className="mb-5 flex h-16 w-16 items-center justify-center rounded-full border backdrop-blur-xl"
+            style={{
+              background: `linear-gradient(160deg, color-mix(in srgb, ${scoreColor} 34%, transparent) 0%, color-mix(in srgb, ${scoreColor} 12%, transparent) 100%)`,
+              borderColor: `color-mix(in srgb, ${scoreColor} 38%, rgba(255,255,255,0.18))`,
+              boxShadow: `0 0 0 10px color-mix(in srgb, ${scoreColor} 16%, transparent)`,
+              color: scoreColor
+            }}
           >
-            <FaceIcon className="h-5 w-5" />
+            <FaceIcon className="h-6 w-6" />
           </div>
-          <p className="text-[39px] font-medium leading-none tracking-[-0.05em] text-white">
+          <p className="text-[38px] font-medium leading-none tracking-[-0.04em]" style={{ color: scoreColor }}>
             {formatPercent(clampedScore)}
           </p>
+          <p className="mt-2 text-sm italic text-[var(--muted-color)]">{statusNote}</p>
         </div>
 
-        <div className="theme-muted absolute bottom-[66px] left-4 text-xs font-medium">0%</div>
-        <div className="theme-muted absolute bottom-[66px] right-4 text-xs font-medium">100%</div>
+        <div className="theme-muted absolute bottom-[96px] left-7 text-xs font-medium">0%</div>
+        <div className="theme-muted absolute bottom-[96px] right-7 text-xs font-medium">100%</div>
       </div>
 
       <div className="mt-4 grid w-full grid-cols-3 gap-2 text-center">
@@ -738,12 +751,12 @@ export function GestorStatusCard({ gestores }: { gestores: GestorMetric[] }) {
         </div>
       </CardHeader>
       <CardContent className="mt-5">
-        <div className="h-[340px]">
+        <div className="h-[380px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart layout="vertical" data={chartData} margin={{ top: 0, right: 0, left: 6, bottom: 0 }}>
+            <BarChart layout="vertical" data={chartData} margin={{ top: 0, right: 4, left: 8, bottom: 0 }} barSize={28}>
               <CartesianGrid horizontal={false} strokeDasharray="3 3" />
               <XAxis type="number" hide />
-              <YAxis dataKey="nome" type="category" width={132} axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
+              <YAxis dataKey="nome" type="category" width={146} axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="bom" name="Bom" stackId="status" fill="var(--status-green)" radius={[8, 0, 0, 8]}>
                 <LabelList dataKey="bomPercent" position="center" fill="var(--chart-label-contrast)" fontSize={11} fontWeight={500} />
@@ -981,9 +994,9 @@ export function HealthByOriginChart({
 }) {
   return (
     <div>
-      <div className="h-[300px]">
+      <div className="h-[332px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart layout="vertical" data={data} margin={{ top: 8, right: 8, left: 8, bottom: 0 }} barSize={22}>
+          <BarChart layout="vertical" data={data} margin={{ top: 8, right: 8, left: 8, bottom: 0 }} barSize={30}>
             <CartesianGrid horizontal={false} strokeDasharray="3 3" />
             <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
             <YAxis dataKey={labelKey} type="category" width={128} axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />

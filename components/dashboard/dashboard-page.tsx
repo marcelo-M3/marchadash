@@ -123,7 +123,7 @@ export function DashboardPage() {
             </section>
 
             <section className="grid gap-4 xl:grid-cols-2">
-              <SummaryCard title="Índice de sucesso" description="Saúde da carteira com base na participação de clientes bons, em alerta e críticos.">
+              <SummaryCard title="Índice de sucesso" description="Saúde da carteira com base na quantidade de clientes bons, em alerta e críticos.">
                 <SuccessGaugeCard
                   score={data.taxa_sucesso}
                   bom={data.perc_bons}
@@ -131,7 +131,7 @@ export function DashboardPage() {
                   critico={data.perc_critico}
                 />
               </SummaryCard>
-              <SummaryCard title="Entradas, saídas e base ativa" description="Análise o tamanho da base, entrada e saída de clientes por período.">
+              <SummaryCard title="Entradas, saídas e base ativa" description="Análise da quantidade de base ativa, entrada e saída de clientes.">
                 <EntryExitBaseChart data={overviewMonthlyRows} compactLegend />
               </SummaryCard>
             </section>

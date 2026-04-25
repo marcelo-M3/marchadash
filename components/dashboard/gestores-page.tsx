@@ -49,7 +49,7 @@ export function GestoresPage() {
                 title="Métrica média da equipe"
                 value={formatPercent(avgScore)}
                 description="Média do cálculo entre clientes ativos, taxa de sucesso e LTV médio/mês."
-                badge={`${formatPercent(avgSuccess)} de sucesso médio`}
+                badge={`${gestoresComDados.length} gestores analisados`}
                 tone="blue"
                 icon={BarChart3}
               />
