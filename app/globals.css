@@ -44,6 +44,10 @@
   --origin-ring-2: #64a7fe;
   --origin-ring-3: #9fc6ff;
   --origin-ring-4: #cddfff;
+  --status-green: #4ab86f;
+  --status-yellow: #ebc35c;
+  --status-red: #ef7385;
+  --chart-label-contrast: #0f172a;
 }
 
 [data-theme="dark"] {
@@ -73,6 +77,10 @@
   --origin-ring-2: #64a7fe;
   --origin-ring-3: #c9cfe5;
   --origin-ring-4: #a8b2d2;
+  --status-green: #237d49;
+  --status-yellow: #a9851f;
+  --status-red: #9d4253;
+  --chart-label-contrast: #ffffff;
 }
 
 .chip-green {

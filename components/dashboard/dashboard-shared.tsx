@@ -182,12 +182,14 @@ export function LabelWithHelp({
 }
 
 export function ChartLegendRow({
-  items
+  items,
+  className
 }: {
   items: Array<{ label: string; color: string; description?: string }>;
+  className?: string;
 }) {
   return (
-    <div className="mt-5 flex flex-wrap items-start justify-center gap-x-6 gap-y-2 text-center">
+    <div className={cn("mt-5 flex flex-wrap items-start justify-center gap-x-6 gap-y-2 text-center", className)}>
       {items.map((item) => (
         <div key={item.label} className="max-w-[180px]">
           <div className="inline-flex items-center gap-2">
@@ -357,7 +359,7 @@ export function MetricCard({
   const card = (
     <Card
       className={cn(
-        "relative overflow-hidden p-6 transition duration-200",
+        "relative overflow-hidden p-6 transition duration-200 will-change-transform hover:scale-[1.025]",
         cardTone[tone]
       )}
     >
@@ -469,7 +471,7 @@ export function OrigemMixCard({
 
   return (
     <div className="space-y-5">
-      <div className="mx-auto h-[320px] max-w-[420px]">
+      <div className="mx-auto h-[360px] max-w-[460px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <defs>
@@ -492,21 +494,61 @@ export function OrigemMixCard({
               dataKey="value"
               nameKey="name"
               innerRadius={0}
-              outerRadius={118}
+              outerRadius={108}
               stroke="transparent"
               strokeWidth={0}
               paddingAngle={0}
               labelLine={false}
-              label={({ cx, cy, midAngle, outerRadius, payload }) => {
-                if (!cx || !cy || !outerRadius || !payload?.percent || payload.percent < 6) return null;
-                const radius = outerRadius * 0.58;
-                const x = cx + radius * Math.cos((-midAngle * Math.PI) / 180);
-                const y = cy + radius * Math.sin((-midAngle * Math.PI) / 180);
-                const textColor = payload.color === "var(--origin-ring-3)" || payload.color === "var(--origin-ring-4)" ? "#0f172a" : "#ffffff";
+              label={({ cx, cy, midAngle, innerRadius, outerRadius, payload }) => {
+                if (!cx || !cy || !outerRadius || !payload?.percent) return null;
+                const percentRadius = ((innerRadius ?? 0) + outerRadius) / 2;
+                const percentX = cx + percentRadius * Math.cos((-midAngle * Math.PI) / 180);
+                const percentY = cy + percentRadius * Math.sin((-midAngle * Math.PI) / 180);
+                const direction = Math.cos((-midAngle * Math.PI) / 180) >= 0 ? 1 : -1;
+                const lineStartRadius = outerRadius + 4;
+                const lineMidRadius = outerRadius + 24;
+                const startX = cx + lineStartRadius * Math.cos((-midAngle * Math.PI) / 180);
+                const startY = cy + lineStartRadius * Math.sin((-midAngle * Math.PI) / 180);
+                const midX = cx + lineMidRadius * Math.cos((-midAngle * Math.PI) / 180);
+                const midY = cy + lineMidRadius * Math.sin((-midAngle * Math.PI) / 180);
+                const endX = midX + direction * 28;
+                const endY = midY;
+                const labelX = endX + direction * 10;
+                const labelY = endY;
+                const textAnchor = direction > 0 ? "start" : "end";
                 return (
-                  <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" fill={textColor} fontSize="18" fontWeight={700}>
-                    {formatPercent(payload.percent)}
-                  </text>
+                  <g>
+                    <text
+                      x={percentX}
+                      y={percentY}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fill="#ffffff"
+                      fontSize="17"
+                      fontWeight={600}
+                    >
+                      {formatPercent(payload.percent)}
+                    </text>
+                    <path
+                      d={`M ${startX} ${startY} L ${midX} ${midY} L ${endX} ${endY}`}
+                      fill="none"
+                      stroke={payload.color}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                    <circle cx={labelX - direction * 8} cy={labelY} r="4" fill={payload.color} />
+                    <text
+                      x={labelX}
+                      y={labelY + 1}
+                      textAnchor={textAnchor}
+                      dominantBaseline="middle"
+                      fill="var(--text-color)"
+                      fontSize="13"
+                      fontWeight={600}
+                    >
+                      {payload.name}
+                    </text>
+                  </g>
                 );
               }}
             >
@@ -528,17 +570,6 @@ export function OrigemMixCard({
             />
           </PieChart>
         </ResponsiveContainer>
-      </div>
-
-      <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-center">
-        {normalized.map((item) => (
-          <div key={`${item.name}-legend`} className="min-w-[140px]">
-            <div className="inline-flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-              <p className="theme-text text-sm font-semibold">{item.name}</p>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -572,7 +603,7 @@ export function SuccessGaugeCard({
 
   return (
     <div className="mx-auto flex max-w-[360px] flex-col items-center">
-      <div className="relative h-[250px] w-full">
+      <div className="relative h-[270px] w-full">
         <svg viewBox="0 0 200 190" className="h-full w-full overflow-visible">
           <path
             d={gaugePath}
@@ -593,20 +624,20 @@ export function SuccessGaugeCard({
           />
         </svg>
 
-        <div className="absolute inset-x-0 bottom-8 flex flex-col items-center text-center">
+        <div className="absolute inset-x-0 bottom-5 flex flex-col items-center text-center">
           <div
-            className="mb-4 flex h-11 w-11 items-center justify-center rounded-full"
+            className="mb-5 flex h-11 w-11 items-center justify-center rounded-full"
             style={{ backgroundColor: `${scoreColor}24`, color: scoreColor }}
           >
             <FaceIcon className="h-5 w-5" />
           </div>
-          <p className="text-[42px] font-semibold leading-none tracking-[-0.05em]" style={{ color: scoreColor }}>
+          <p className="text-[39px] font-medium leading-none tracking-[-0.05em] text-white">
             {formatPercent(clampedScore)}
           </p>
         </div>
 
-        <div className="theme-muted absolute bottom-2 left-0 text-xs font-medium">0%</div>
-        <div className="theme-muted absolute bottom-2 right-0 text-xs font-medium">100%</div>
+        <div className="theme-muted absolute bottom-[66px] left-4 text-xs font-medium">0%</div>
+        <div className="theme-muted absolute bottom-[66px] right-4 text-xs font-medium">100%</div>
       </div>
 
       <div className="mt-4 grid w-full grid-cols-3 gap-2 text-center">
@@ -714,14 +745,14 @@ export function GestorStatusCard({ gestores }: { gestores: GestorMetric[] }) {
               <XAxis type="number" hide />
               <YAxis dataKey="nome" type="category" width={132} axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="bom" name="Bom" stackId="status" fill="#2f9e5c" radius={[8, 0, 0, 8]}>
-                <LabelList dataKey="bomPercent" position="center" fill="#ffffff" fontSize={11} fontWeight={700} />
+              <Bar dataKey="bom" name="Bom" stackId="status" fill="var(--status-green)" radius={[8, 0, 0, 8]}>
+                <LabelList dataKey="bomPercent" position="center" fill="var(--chart-label-contrast)" fontSize={11} fontWeight={500} />
               </Bar>
-              <Bar dataKey="alerta" name="Alerta" stackId="status" fill="#d8aa2f">
-                <LabelList dataKey="alertaPercent" position="center" fill="#0f172a" fontSize={11} fontWeight={700} />
+              <Bar dataKey="alerta" name="Alerta" stackId="status" fill="var(--status-yellow)">
+                <LabelList dataKey="alertaPercent" position="center" fill="var(--chart-label-contrast)" fontSize={11} fontWeight={500} />
               </Bar>
-              <Bar dataKey="critico" name="Crítico" stackId="status" fill="#d15468" radius={[0, 8, 8, 0]}>
-                <LabelList dataKey="criticoPercent" position="center" fill="#ffffff" fontSize={11} fontWeight={700} />
+              <Bar dataKey="critico" name="Crítico" stackId="status" fill="var(--status-red)" radius={[0, 8, 8, 0]}>
+                <LabelList dataKey="criticoPercent" position="center" fill="var(--chart-label-contrast)" fontSize={11} fontWeight={500} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -1076,6 +1107,7 @@ export function EntryExitBaseChart({
         </ComposedChart>
       </ResponsiveContainer>
       <ChartLegendRow
+        className={compactLegend ? "mt-6 mb-8" : "mt-6"}
         items={[
           {
             label: "Base ativa",

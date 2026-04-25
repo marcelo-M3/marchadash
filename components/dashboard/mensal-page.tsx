@@ -329,21 +329,21 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
     <div className="space-y-8 pb-10">
       <div className="grid gap-3 md:grid-cols-3">
         <InsightChip
-          label="Maior entrada"
+          label="Mês com Maior Entrada"
           value={topEntryMonth ? topEntryMonth.tooltipLabel : "—"}
           tone="green"
           icon={CalendarRange}
           tooltip="Mês dos últimos 12 meses com a maior quantidade de entradas registradas na série mensal."
         />
         <InsightChip
-          label="Maior saída"
+          label="Mês com Maior Saída"
           value={topExitMonth ? topExitMonth.tooltipLabel : "—"}
           tone="red"
           icon={TrendingDown}
           tooltip="Mês dos últimos 12 meses com a maior quantidade de saídas registradas na série mensal."
         />
         <InsightChip
-          label="Base atual"
+          label="Base Ativa de Clientes"
           value={String(currentBase)}
           tone="blue"
           icon={Users}

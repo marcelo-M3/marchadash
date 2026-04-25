@@ -123,7 +123,7 @@ export function DashboardPage() {
             </section>
 
             <section className="grid gap-4 xl:grid-cols-2">
-              <SummaryCard title="Índice de sucesso" description="Leitura consolidada da saúde da carteira com base na participação de clientes bons, em alerta e críticos.">
+              <SummaryCard title="Índice de sucesso" description="Saúde da carteira com base na participação de clientes bons, em alerta e críticos.">
                 <SuccessGaugeCard
                   score={data.taxa_sucesso}
                   bom={data.perc_bons}
