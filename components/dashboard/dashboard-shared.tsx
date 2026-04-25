@@ -406,7 +406,7 @@ export function OrigemMixCard({
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="mx-auto w-full max-w-[430px]">
+      <div className="mx-auto w-full max-w-[360px] sm:max-w-[400px]">
         <div className="relative aspect-square w-full">
           <svg viewBox="0 0 320 320" className="h-full w-full">
             <g transform="rotate(-210 160 160)">
@@ -445,10 +445,10 @@ export function OrigemMixCard({
           </svg>
 
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-            <p className="theme-text text-[clamp(2.5rem,5vw,4rem)] font-semibold tracking-[-0.06em]">
+            <p className="theme-text text-[clamp(2rem,4vw,3.25rem)] font-semibold tracking-[-0.06em]">
               {total.toLocaleString("pt-BR")}
             </p>
-            <p className="theme-muted mt-2 text-sm">clientes ativos</p>
+            <p className="theme-muted mt-1 text-xs sm:text-sm">clientes ativos</p>
           </div>
         </div>
       </div>
@@ -471,13 +471,75 @@ export function OrigemMixCard({
             <div className="mt-2 flex items-start gap-2">
               <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
               <div className="min-w-0">
-                <p className="theme-text break-words text-sm font-medium">{item.name}</p>
+                <p className="theme-text overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-medium sm:text-sm" title={item.name}>
+                  {item.name}
+                </p>
                 <p className="theme-muted text-xs">{formatPercent(item.percent)} da base</p>
               </div>
             </div>
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+export function GestorCrossMetricSummary({ gestores }: { gestores: GestorMetric[] }) {
+  const chartData = [...gestores]
+    .sort((a, b) => b.taxa_sucesso - a.taxa_sucesso)
+    .map((gestor) => ({
+      gestor: gestor.nome,
+      "Taxa de sucesso": gestor.taxa_sucesso,
+      "LTV médio": gestor.ltv_medio
+    }));
+
+  return (
+    <div className="h-[320px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={chartData} margin={{ top: 8, right: 10, left: -10, bottom: 0 }}>
+          <CartesianGrid vertical={false} strokeDasharray="3 3" />
+          <XAxis
+            dataKey="gestor"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: "var(--muted-color)", fontSize: 12 }}
+          />
+          <YAxis
+            yAxisId="left"
+            axisLine={false}
+            tickLine={false}
+            domain={[0, 100]}
+            tick={{ fill: "var(--muted-color)", fontSize: 12 }}
+            tickFormatter={(value) => `${value}%`}
+          />
+          <YAxis
+            yAxisId="right"
+            orientation="right"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: "var(--muted-color)", fontSize: 12 }}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend />
+          <Bar
+            yAxisId="left"
+            dataKey="Taxa de sucesso"
+            name="Taxa de sucesso"
+            fill="var(--primary-color)"
+            radius={[10, 10, 0, 0]}
+            barSize={28}
+          />
+          <Line
+            yAxisId="right"
+            type="monotone"
+            dataKey="LTV médio"
+            name="LTV médio"
+            stroke="var(--success-color)"
+            strokeWidth={3}
+            dot={{ r: 4, fill: "var(--success-color)" }}
+          />
+        </ComposedChart>
+      </ResponsiveContainer>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import type { Route } from "next";
 import { AlertTriangle, ShieldAlert, ShieldCheck, Users } from "lucide-react";
 import { DashboardDataPage } from "@/components/dashboard/dashboard-shell";
 import {
+  GestorCrossMetricSummary,
   HealthDonut,
   InsightChip,
   MetricCard,
@@ -114,15 +115,8 @@ export function DashboardPage() {
             </div>
 
             <div className="grid gap-4 xl:grid-cols-2">
-              <SummaryCard title="LTV médio e mediana" description="Tempo médio e ponto central de permanência da carteira.">
-                <div className="flex items-end gap-3">
-                  <div className="metric-number font-bold text-primary">{formatMonths(data.ltv_medio)}</div>
-                  <span className="theme-muted pb-1 text-lg font-medium">meses</span>
-                </div>
-                <div className="theme-soft-surface mt-5 rounded-[20px] border p-4">
-                  <p className="theme-muted text-xs uppercase tracking-[0.2em]">Mediana</p>
-                  <p className="theme-text mt-2 text-2xl font-semibold">{formatMonths(data.ltv_mediana)} meses</p>
-                </div>
+              <SummaryCard title="Métricas cruzadas por gestor" description="Cruza taxa de sucesso e LTV médio das carteiras por gestor.">
+                <GestorCrossMetricSummary gestores={data.por_gestor} />
               </SummaryCard>
 
               <SummaryCard title="Origem dos Clientes" description="Mostra de qual empresa veio cada cliente ativo da base atual.">

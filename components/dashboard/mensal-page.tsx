@@ -96,11 +96,12 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
     setSelectedMonth(monthExists || selectedMonth === "all" ? selectedMonth : "all");
   }, [monthsForYear, selectedMonth]);
 
-  const chartRows = filteredRows.map((item) => ({
+  const lastTwelveRows = monthRows.slice(-12);
+  const chartRows = lastTwelveRows.map((item) => ({
     ...item,
-    axisLabel: selectedMonth === "all" ? shortMonthLabel(item.mesNome) : item.mesNome
+    axisLabel: shortMonthLabel(item.mesNome)
   }));
-  const closedMonths = filteredRows.filter((item) => !item.parcial && item.churn !== null);
+  const closedMonths = monthRows.filter((item) => !item.parcial && item.churn !== null);
   const lastClosed = closedMonths[closedMonths.length - 1];
   const averageChurn =
     closedMonths.reduce((acc: number, item) => acc + (item.churn ?? 0), 0) / Math.max(closedMonths.length, 1);
@@ -134,58 +135,14 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
         />
         <InsightChip
           label="Base atual"
-          value={String(filteredRows.at(-1)?.base_inicio ?? data.clientes_ativos)}
+          value={String(data.evolucao_mensal.at(-1)?.base_inicio ?? data.clientes_ativos)}
           tone="blue"
           icon={Users}
         />
       </div>
 
-      <SummaryCard
-        title="Filtro da evolução"
-        description="Selecione o ano e, se quiser, um mês específico para analisar só aquele recorte."
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="space-y-2">
-            <span className="theme-muted text-xs uppercase tracking-[0.18em]">Ano</span>
-            <select
-              value={selectedYear}
-              onChange={(event) => setSelectedYear(event.target.value)}
-              className="theme-surface theme-text h-11 w-full rounded-[14px] border px-4 text-sm outline-none transition focus:border-primary/60"
-            >
-              {years.map((year) => (
-                <option key={year} value={year} style={{ background: "var(--surface)", color: "var(--text-color)" }}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="space-y-2">
-            <span className="theme-muted text-xs uppercase tracking-[0.18em]">Mês</span>
-            <select
-              value={selectedMonth}
-              onChange={(event) => setSelectedMonth(event.target.value)}
-              className="theme-surface theme-text h-11 w-full rounded-[14px] border px-4 text-sm outline-none transition focus:border-primary/60"
-            >
-              <option value="all" style={{ background: "var(--surface)", color: "var(--text-color)" }}>
-                Todos os meses
-              </option>
-              {monthsForYear.map((item) => (
-                <option
-                  key={`${item.ano}-${item.mesNome}`}
-                  value={item.mesNome}
-                  style={{ background: "var(--surface)", color: "var(--text-color)" }}
-                >
-                  {item.mesNome}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </SummaryCard>
-
-      <div className="grid gap-4 2xl:grid-cols-[1.2fr_0.8fr]">
-        <SummaryCard title="Base e churn por mês" description="Mostra o tamanho da base e o churn ao longo do tempo.">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+        <SummaryCard title="Base e churn dos últimos 12 meses" description="Mostra o tamanho da base e o churn ao longo dos últimos 12 meses.">
           <div className="h-[380px]">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={chartRows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -239,6 +196,50 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
           <OrigemMixCard data={origemData} />
         </SummaryCard>
       </div>
+
+      <SummaryCard
+        title="Filtro da evolução"
+        description="Selecione o ano e, se quiser, um mês específico para analisar só o detalhamento mensal."
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="space-y-2">
+            <span className="theme-muted text-xs uppercase tracking-[0.18em]">Ano</span>
+            <select
+              value={selectedYear}
+              onChange={(event) => setSelectedYear(event.target.value)}
+              className="theme-surface theme-text h-11 w-full rounded-[14px] border px-4 text-sm outline-none transition focus:border-primary/60"
+            >
+              {years.map((year) => (
+                <option key={year} value={year} style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-2">
+            <span className="theme-muted text-xs uppercase tracking-[0.18em]">Mês</span>
+            <select
+              value={selectedMonth}
+              onChange={(event) => setSelectedMonth(event.target.value)}
+              className="theme-surface theme-text h-11 w-full rounded-[14px] border px-4 text-sm outline-none transition focus:border-primary/60"
+            >
+              <option value="all" style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+                Todos os meses
+              </option>
+              {monthsForYear.map((item) => (
+                <option
+                  key={`${item.ano}-${item.mesNome}`}
+                  value={item.mesNome}
+                  style={{ background: "var(--surface)", color: "var(--text-color)" }}
+                >
+                  {item.mesNome}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </SummaryCard>
 
       <EvolucaoTable
         rows={filteredRows}
