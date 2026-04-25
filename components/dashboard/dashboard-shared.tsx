@@ -19,7 +19,7 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-import { ArrowUpRight, ChevronDown, CircleAlert, LayoutGrid } from "lucide-react";
+import { ArrowUpRight, CircleAlert } from "lucide-react";
 import { ClientesDashboardData, EvolucaoMensal, GestorMetric, SaidasPorMes } from "@/lib/types";
 import { cn, formatPercent, getChurnColor } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -371,45 +371,43 @@ export function OrigemMixCard({
   }
 
   var formattedData =
-    data.length <= 4
+    data.length <= 3
       ? data
-      : data.slice(0, 3).concat([
+      : data.slice(0, 2).concat([
           {
-            name: "Outras",
-            value: data.slice(3).reduce(function (acc, item) {
+            name: "Outras origens",
+            value: data.slice(2).reduce(function (acc, item) {
               return acc + item.value;
             }, 0),
-            percent: data.slice(3).reduce(function (acc, item) {
+            percent: data.slice(2).reduce(function (acc, item) {
               return acc + item.percent;
             }, 0),
             color: "var(--muted-color)"
           }
         ]);
 
+  var ringPalette = ["#1A68FF", "#64A7FE", "#C9CFE5", "#A8B2D2"];
+  formattedData = formattedData.map(function (item, index) {
+    return {
+      name: item.name,
+      value: item.value,
+      percent: item.percent,
+      color: ringPalette[index] || ringPalette[ringPalette.length - 1]
+    };
+  });
+
   var total = formattedData.reduce(function (acc, item) {
     return acc + item.value;
   }, 0);
   var baseRadius = 118;
-  var ringGap = 23;
-  var trackColor = "rgba(89, 103, 140, 0.34)";
-  var startOffsetRatio = 0.22;
+  var ringGap = 24;
+  var trackColor = "#26304A";
+  var startOffsetRatio = 0.18;
 
   return (
-    <div className="theme-soft-surface rounded-[28px] border p-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="theme-muted text-[11px] uppercase tracking-[0.2em]">Base ativa</p>
-          <p className="theme-text mt-2 text-sm">Distribuição dos clientes por empresa de origem.</p>
-        </div>
-        <div className="theme-surface inline-flex items-center gap-3 rounded-full border px-4 py-3">
-          <LayoutGrid className="h-4 w-4 text-primary" />
-          <span className="theme-text text-sm font-medium">Todas as origens</span>
-          <ChevronDown className="theme-muted h-4 w-4" />
-        </div>
-      </div>
-
-      <div className="mt-6 flex justify-center">
-        <div className="relative h-[320px] w-[320px]">
+    <div className="flex flex-col gap-8">
+      <div className="mx-auto w-full max-w-[430px]">
+        <div className="relative aspect-square w-full">
           <svg viewBox="0 0 320 320" className="h-full w-full">
             <g transform="rotate(-210 160 160)">
               {formattedData.map(function (item, index) {
@@ -455,7 +453,16 @@ export function OrigemMixCard({
         </div>
       </div>
 
-      <div className={cn("mt-4 grid gap-4", formattedData.length >= 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3")}>
+      <div
+        className={cn(
+          "grid gap-5",
+          formattedData.length === 1
+            ? "grid-cols-1"
+            : formattedData.length === 2
+              ? "sm:grid-cols-2"
+              : "sm:grid-cols-3"
+        )}
+      >
         {formattedData.map((item) => (
           <div key={item.name} className="min-w-0">
             <p className="theme-text text-[clamp(1.8rem,3vw,2.8rem)] font-semibold tracking-[-0.05em]">
@@ -464,7 +471,7 @@ export function OrigemMixCard({
             <div className="mt-2 flex items-start gap-2">
               <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
               <div className="min-w-0">
-                <p className="theme-text truncate text-sm font-medium">{item.name}</p>
+                <p className="theme-text break-words text-sm font-medium">{item.name}</p>
                 <p className="theme-muted text-xs">{formatPercent(item.percent)} da base</p>
               </div>
             </div>

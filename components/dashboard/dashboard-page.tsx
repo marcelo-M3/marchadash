@@ -1,7 +1,7 @@
 "use client";
 
 import type { Route } from "next";
-import { Activity, AlertTriangle, ArrowUpDown, Clock3, ShieldAlert, ShieldCheck, Users } from "lucide-react";
+import { AlertTriangle, ShieldAlert, ShieldCheck, Users } from "lucide-react";
 import { DashboardDataPage } from "@/components/dashboard/dashboard-shell";
 import {
   HealthDonut,
@@ -57,19 +57,16 @@ export function DashboardPage() {
                       label="Taxa de sucesso"
                       value={formatPercent(data.taxa_sucesso)}
                       tone="green"
-                      icon={Activity}
                     />
                     <InsightChip
                       label="LTV médio"
                       value={`${formatMonths(data.ltv_medio)} meses`}
                       tone="blue"
-                      icon={Clock3}
                     />
                     <InsightChip
                       label="Variação da base"
                       value={formatSignedPercent(data.variacao_base)}
                       tone={data.variacao_base >= 0 ? "blue" : "yellow"}
-                      icon={ArrowUpDown}
                     />
                   </div>
                 </div>
