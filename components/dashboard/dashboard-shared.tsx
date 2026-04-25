@@ -569,8 +569,12 @@ export function SuccessGaugeCard({
   critico: number;
 }) {
   const gaugePath = "M 24 156 A 76 76 0 0 1 176 156";
-  const clampedScore = Math.max(0, Math.min(100, score));
-  const levelTone = clampedScore >= 65 ? "green" : clampedScore >= 40 ? "yellow" : "red";
+  const dominant =
+    bom >= 45 ? { value: bom, tone: "green" as const } : alerta >= critico
+      ? { value: alerta, tone: "yellow" as const }
+      : { value: critico, tone: "red" as const };
+  const clampedScore = Math.max(0, Math.min(100, dominant.value));
+  const levelTone = dominant.tone;
   const scoreColor =
     levelTone === "green"
       ? "var(--success-color)"
@@ -587,30 +591,9 @@ export function SuccessGaugeCard({
             d={gaugePath}
             pathLength={100}
             fill="none"
-            stroke="var(--danger-color)"
-            strokeWidth="16"
+            stroke="var(--surface-strong)"
+            strokeWidth="18"
             strokeLinecap="round"
-            strokeDasharray="33 67"
-          />
-          <path
-            d={gaugePath}
-            pathLength={100}
-            fill="none"
-            stroke="var(--warning-color)"
-            strokeWidth="16"
-            strokeLinecap="round"
-            strokeDasharray="33 67"
-            strokeDashoffset="-33"
-          />
-          <path
-            d={gaugePath}
-            pathLength={100}
-            fill="none"
-            stroke="var(--success-color)"
-            strokeWidth="16"
-            strokeLinecap="round"
-            strokeDasharray="34 66"
-            strokeDashoffset="-66"
           />
           <path
             d={gaugePath}
@@ -634,6 +617,9 @@ export function SuccessGaugeCard({
             {formatPercent(clampedScore)}
           </p>
         </div>
+
+        <div className="theme-muted absolute bottom-0 left-0 text-xs font-medium">0%</div>
+        <div className="theme-muted absolute bottom-0 right-0 text-xs font-medium">100%</div>
       </div>
 
       <div className="mt-4 grid w-full grid-cols-3 gap-2 text-center">
@@ -1188,5 +1174,6 @@ export function buildGestorMetricsFromBase(baseClientes: BaseClienteDetalhado[])
           : 0
       };
     })
+    .filter((item) => item.ativos > 0)
     .sort((a, b) => (b.ativos - a.ativos) || (b.taxa_sucesso - a.taxa_sucesso));
 }

@@ -38,42 +38,6 @@ export function DashboardPage() {
 
         return (
           <div className="space-y-8 pb-10">
-            <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-              <SummaryCard title="Resumo da carteira">
-                <div>
-                  <div className="flex items-end gap-3">
-                    <span className="theme-text text-[55px] font-semibold leading-none tracking-[-0.06em]">{data.clientes_ativos}</span>
-                    <span className="theme-muted pb-2 text-lg">clientes ativos</span>
-                  </div>
-                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                    <InsightChip
-                      label="Taxa de sucesso"
-                      value={formatPercent(data.taxa_sucesso)}
-                      tone="green"
-                      tooltip="Percentual de clientes em status Bom dentro da base ativa com STATUS CLIENTE preenchido. Cálculo: clientes_bons / clientes_ativos."
-                    />
-                    <InsightChip
-                      label="LTV médio"
-                      value={`${formatMonths(data.ltv_medio)} meses`}
-                      tone="blue"
-                      tooltip="Tempo médio de permanência da base ativa. Usa PERÍODO quando existe; se não, calcula pela diferença entre DATA PLANEJAMENTO e SAÍDA CLIENTE ou a data atual."
-                    />
-                  </div>
-                </div>
-              </SummaryCard>
-
-              <SummaryCard
-                title="Índice de sucesso"
-              >
-                <SuccessGaugeCard
-                  score={data.taxa_sucesso}
-                  bom={data.perc_bons}
-                  alerta={data.perc_alerta}
-                  critico={data.perc_critico}
-                />
-              </SummaryCard>
-            </div>
-
             <div className="grid gap-4 xl:grid-cols-4">
               <MetricCard
                 title="Clientes ativos"
@@ -111,6 +75,42 @@ export function DashboardPage() {
                 tone="red"
                 href={"/clientes/critico" as Route}
               />
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+              <SummaryCard title="Resumo da carteira">
+                <div>
+                  <div className="flex items-end gap-3">
+                    <span className="theme-text text-[55px] font-semibold leading-none tracking-[-0.06em]">{data.clientes_ativos}</span>
+                    <span className="theme-muted pb-2 text-lg">clientes ativos</span>
+                  </div>
+                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                    <InsightChip
+                      label="Taxa de sucesso"
+                      value={formatPercent(data.taxa_sucesso)}
+                      tone="green"
+                      tooltip="Percentual de clientes em status Bom dentro da base ativa com STATUS CLIENTE preenchido. Cálculo: clientes_bons / clientes_ativos."
+                    />
+                    <InsightChip
+                      label="LTV médio"
+                      value={`${formatMonths(data.ltv_medio)} meses`}
+                      tone="blue"
+                      tooltip="Tempo médio de permanência da base ativa. Usa PERÍODO quando existe; se não, calcula pela diferença entre DATA PLANEJAMENTO e SAÍDA CLIENTE ou a data atual."
+                    />
+                  </div>
+                </div>
+              </SummaryCard>
+
+              <SummaryCard
+                title="Índice de sucesso"
+              >
+                <SuccessGaugeCard
+                  score={data.taxa_sucesso}
+                  bom={data.perc_bons}
+                  alerta={data.perc_alerta}
+                  critico={data.perc_critico}
+                />
+              </SummaryCard>
             </div>
 
             <div className="grid gap-4 xl:grid-cols-2">
