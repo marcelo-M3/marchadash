@@ -159,7 +159,7 @@ export function HoverInfo({ text }: { text: string }) {
   return (
     <span className="group relative inline-flex items-center">
       <CircleHelp className="theme-muted h-4 w-4 cursor-help" />
-      <span className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[260px] -translate-x-1/2 rounded-[16px] border bg-[var(--tooltip-bg)] p-3 text-left text-xs font-normal leading-5 text-[var(--text-color)] shadow-[0_18px_40px_var(--shadow-color)] group-hover:block">
+      <span className="pointer-events-none absolute bottom-full right-0 z-50 mb-3 hidden w-[260px] rounded-[16px] bg-[var(--tooltip-bg)] px-4 py-3 text-left text-xs font-normal leading-5 text-[var(--text-color)] shadow-[0_18px_40px_var(--shadow-color)] group-hover:block">
         {text}
       </span>
     </span>
@@ -291,7 +291,7 @@ export function InsightChip({
   return (
     <div
       className={cn(
-        "relative flex min-h-[152px] flex-col justify-between overflow-hidden rounded-[24px] border px-6 py-5",
+        "relative flex min-h-[152px] flex-col justify-between overflow-visible rounded-[24px] border px-6 py-5",
         toneClasses[tone]
       )}
     >
