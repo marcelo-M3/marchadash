@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, BarChart3, Trophy, Users } from "lucide-react";
+import { Activity, BarChart3, Star, Users } from "lucide-react";
 import { DashboardDataPage } from "@/components/dashboard/dashboard-shell";
 import {
   buildGestorMetricsFromBase,
@@ -38,12 +38,12 @@ export function GestoresPage() {
           <div className="space-y-8 pb-10">
             <div className="grid gap-3 md:grid-cols-3">
               <MetricCard
-                title="Melhores métricas"
+                title="Gestor Estrela"
                 value={topGestor ? topGestor.nome : "—"}
                 description="Gestor com melhor cálculo entre clientes ativos, taxa de sucesso e LTV médio/mês."
                 badge={topGestor ? `${formatPercent(topGestor.score_composto ?? 0)} no ranking` : "Sem dados"}
                 tone="yellow"
-                icon={Trophy}
+                icon={Star}
               />
               <MetricCard
                 title="Métrica média da equipe"
