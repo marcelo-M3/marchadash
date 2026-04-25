@@ -168,36 +168,36 @@
 [data-theme="dark"] .metric-card-blue {
   border-color: rgba(100, 167, 254, 0.28);
   background:
-    radial-gradient(circle at top right, rgba(144, 191, 255, 0.2), transparent 34%),
-    linear-gradient(160deg, #0e214d 0%, #1746a1 58%, #2c78ff 100%);
-  backdrop-filter: blur(12px);
+    radial-gradient(circle at top right, rgba(100, 167, 254, 0.18), transparent 38%),
+    linear-gradient(160deg, rgba(13, 23, 50, 0.84) 0%, rgba(14, 30, 66, 0.62) 100%);
+  backdrop-filter: blur(18px);
   color: #f8fafc;
 }
 
 [data-theme="dark"] .metric-card-green {
   border-color: rgba(116, 209, 131, 0.28);
   background:
-    radial-gradient(circle at top right, rgba(144, 239, 167, 0.18), transparent 34%),
-    linear-gradient(160deg, #0d2a1d 0%, #166038 58%, #30b75f 100%);
-  backdrop-filter: blur(12px);
+    radial-gradient(circle at top right, rgba(97, 217, 117, 0.16), transparent 38%),
+    linear-gradient(160deg, rgba(16, 34, 35, 0.84) 0%, rgba(12, 42, 31, 0.62) 100%);
+  backdrop-filter: blur(18px);
   color: #f8fafc;
 }
 
 [data-theme="dark"] .metric-card-yellow {
-  border-color: rgba(239, 196, 44, 0.28);
+  border-color: rgba(239, 196, 44, 0.26);
   background:
-    radial-gradient(circle at top right, rgba(255, 226, 135, 0.18), transparent 34%),
-    linear-gradient(160deg, #342706 0%, #7d5b0c 58%, #d89e12 100%);
-  backdrop-filter: blur(12px);
+    radial-gradient(circle at top right, rgba(255, 198, 3, 0.16), transparent 38%),
+    linear-gradient(160deg, rgba(32, 32, 32, 0.84) 0%, rgba(46, 36, 8, 0.62) 100%);
+  backdrop-filter: blur(18px);
   color: #f8fafc;
 }
 
 [data-theme="dark"] .metric-card-red {
-  border-color: rgba(254, 87, 107, 0.28);
+  border-color: rgba(254, 87, 107, 0.26);
   background:
-    radial-gradient(circle at top right, rgba(255, 182, 192, 0.16), transparent 34%),
-    linear-gradient(160deg, #461521 0%, #8e2740 58%, #d63d5b 100%);
-  backdrop-filter: blur(12px);
+    radial-gradient(circle at top right, rgba(255, 45, 69, 0.18), transparent 38%),
+    linear-gradient(160deg, rgba(60, 24, 32, 0.86) 0%, rgba(50, 18, 28, 0.64) 100%);
+  backdrop-filter: blur(18px);
   color: #f8fafc;
 }
 
