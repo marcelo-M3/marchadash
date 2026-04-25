@@ -333,45 +333,73 @@ export function OrigemMixCard({
     );
   }
 
+  var total = data.reduce(function (acc, item) {
+    return acc + item.value;
+  }, 0);
+  var topSource = data[0];
+
   return (
-    <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-      <div className="h-[220px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart layout="vertical" data={data} margin={{ top: 0, right: 0, left: 8, bottom: 0 }}>
-            <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-            <XAxis type="number" hide />
-            <YAxis
-              dataKey="name"
-              type="category"
-              width={116}
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "var(--muted-color)", fontSize: 12 }}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="value" name="Clientes" radius={[999, 999, 999, 999]} barSize={18}>
-              {data.map((item) => (
-                <Cell key={item.name} fill={item.color} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+    <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr] xl:items-center">
+      <div className="theme-soft-surface rounded-[24px] border p-5">
+        <div className="relative mx-auto h-[240px] w-[240px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={66}
+                outerRadius={102}
+                stroke="transparent"
+                paddingAngle={4}
+              >
+                {data.map((item) => (
+                  <Cell key={item.name} fill={item.color} />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
+          </ResponsiveContainer>
+
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+            <p className="theme-muted text-[11px] uppercase tracking-[0.22em]">Base ativa</p>
+            <p className="theme-text mt-2 text-5xl font-semibold tracking-[-0.05em]">{total}</p>
+            <p className="theme-muted mt-1 text-sm">clientes mapeados</p>
+          </div>
+        </div>
+
+        <div className="theme-surface mt-4 rounded-[18px] border p-4">
+          <p className="theme-muted text-[11px] uppercase tracking-[0.18em]">Origem dominante</p>
+          <div className="mt-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="h-3 w-3 rounded-full" style={{ backgroundColor: topSource.color }} />
+              <div>
+                <p className="theme-text text-sm font-semibold">{topSource.name}</p>
+                <p className="theme-muted text-xs">{formatPercent(topSource.percent)} da base</p>
+              </div>
+            </div>
+            <span className="theme-text text-xl font-semibold">{topSource.value}</span>
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="grid gap-3">
         {data.map((item) => (
-          <div key={item.name} className="theme-soft-surface rounded-[18px] border p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+          <div key={item.name} className="theme-soft-surface rounded-[20px] border p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <span className="mt-1 h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
                 <div>
-                  <p className="theme-text text-sm font-semibold">{item.name}</p>
-                  <p className="theme-muted text-xs">{formatPercent(item.percent)} da base</p>
+                  <p className="theme-text text-base font-semibold">{item.name}</p>
+                  <p className="theme-muted mt-1 text-sm">{formatPercent(item.percent)} da base ativa</p>
                 </div>
               </div>
-              <span className="theme-text text-lg font-semibold">{item.value}</span>
+              <div className="text-right">
+                <p className="theme-text text-3xl font-semibold tracking-[-0.04em]">{item.value}</p>
+                <p className="theme-muted text-xs">clientes</p>
+              </div>
             </div>
-            <div className="theme-border mt-4 h-2 overflow-hidden rounded-full border bg-[var(--surface)]">
+            <div className="theme-border mt-4 h-2.5 overflow-hidden rounded-full border bg-[var(--surface)]">
               <div
                 className="h-full rounded-full"
                 style={{ width: `${Math.max(item.percent, 4)}%`, backgroundColor: item.color }}
