@@ -657,7 +657,8 @@ export function SuccessGaugeCard({
 
 export function GestorCrossMetricSummary({ gestores }: { gestores: GestorMetric[] }) {
   const chartData = [...gestores]
-    .sort((a, b) => b.taxa_sucesso - a.taxa_sucesso)
+    .filter((gestor) => (gestor.clientes_com_status ?? (gestor.bons + gestor.alerta + gestor.critico)) > 0)
+    .sort((a, b) => (b.score_composto ?? 0) - (a.score_composto ?? 0))
     .map((gestor) => ({
       gestor: gestor.nome,
       taxa_sucesso: gestor.taxa_sucesso,
@@ -697,12 +698,15 @@ export function GestorCrossMetricSummary({ gestores }: { gestores: GestorMetric[
 }
 
 export function GestorStatusCard({ gestores }: { gestores: GestorMetric[] }) {
-  const chartData = gestores.map((gestor) => ({
-    nome: gestor.nome,
-    bom: gestor.bons,
-    alerta: gestor.alerta,
-    critico: gestor.critico
-  }));
+  const chartData = gestores
+    .filter((gestor) => (gestor.clientes_com_status ?? (gestor.bons + gestor.alerta + gestor.critico)) > 0)
+    .sort((a, b) => (b.score_composto ?? 0) - (a.score_composto ?? 0))
+    .map((gestor) => ({
+      nome: gestor.nome,
+      bom: gestor.bons,
+      alerta: gestor.alerta,
+      critico: gestor.critico
+    }));
 
   return (
     <Card className="p-6">
@@ -753,12 +757,15 @@ export function GestorStatusCard({ gestores }: { gestores: GestorMetric[] }) {
 }
 
 export function GestorPerformanceChart({ gestores }: { gestores: GestorMetric[] }) {
-  const chartData = gestores.map((gestor) => ({
-    gestor: gestor.nome,
-    taxa_sucesso: gestor.taxa_sucesso,
-    ltv_medio: gestor.ltv_medio,
-    tooltipLabel: gestor.nome
-  }));
+  const chartData = gestores
+    .filter((gestor) => (gestor.clientes_com_status ?? (gestor.bons + gestor.alerta + gestor.critico)) > 0)
+    .sort((a, b) => (b.score_composto ?? 0) - (a.score_composto ?? 0))
+    .map((gestor) => ({
+      gestor: gestor.nome,
+      taxa_sucesso: gestor.taxa_sucesso,
+      ltv_medio: gestor.ltv_medio,
+      tooltipLabel: gestor.nome
+    }));
 
   return (
     <Card className="p-6">
@@ -1159,12 +1166,13 @@ export function buildGestorMetricsFromBase(baseClientes: BaseClienteDetalhado[])
     }
   });
 
-  return Array.from(grouped.values())
+  var rawMetrics = Array.from(grouped.values())
     .map((item) => {
-      const total = item.bons + item.alerta + item.critico;
+      var total = item.bons + item.alerta + item.critico;
       return {
         nome: item.nome,
         ativos: item.ativos,
+        clientes_com_status: total,
         bons: item.bons,
         alerta: item.alerta,
         critico: item.critico,
@@ -1174,6 +1182,32 @@ export function buildGestorMetricsFromBase(baseClientes: BaseClienteDetalhado[])
           : 0
       };
     })
-    .filter((item) => item.ativos > 0)
-    .sort((a, b) => (b.ativos - a.ativos) || (b.taxa_sucesso - a.taxa_sucesso));
+    .filter((item) => item.ativos > 0);
+
+  var maxClientesComStatus = rawMetrics.reduce(function (max, item) {
+    return Math.max(max, item.clientes_com_status);
+  }, 0);
+  var maxLtv = rawMetrics.reduce(function (max, item) {
+    return Math.max(max, item.ltv_medio);
+  }, 0);
+
+  return rawMetrics
+    .map(function (item) {
+      var successScore = item.taxa_sucesso / 100;
+      var volumeScore = maxClientesComStatus ? item.clientes_com_status / maxClientesComStatus : 0;
+      var ltvScore = maxLtv ? item.ltv_medio / maxLtv : 0;
+
+      return {
+        nome: item.nome,
+        ativos: item.ativos,
+        clientes_com_status: item.clientes_com_status,
+        bons: item.bons,
+        alerta: item.alerta,
+        critico: item.critico,
+        taxa_sucesso: item.taxa_sucesso,
+        ltv_medio: item.ltv_medio,
+        score_composto: (successScore * 0.5 + volumeScore * 0.3 + ltvScore * 0.2) * 100
+      };
+    })
+    .sort((a, b) => (b.score_composto ?? 0) - (a.score_composto ?? 0));
 }

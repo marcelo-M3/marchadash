@@ -24,40 +24,45 @@ export function GestoresPage() {
           data.base_clientes_detalhada?.length
             ? buildGestorMetricsFromBase(data.base_clientes_detalhada)
             : data.por_gestor
-        ).sort((a, b) => ("ativos" in b ? (b.ativos as number) : 0) - ("ativos" in a ? (a.ativos as number) : 0) || b.taxa_sucesso - a.taxa_sucesso);
-        const topGestor = gestores[0];
+        ).sort((a, b) => (b.score_composto ?? 0) - (a.score_composto ?? 0));
+        const gestoresComDados = gestores.filter(
+          (gestor) => (gestor.clientes_com_status ?? (gestor.bons + gestor.alerta + gestor.critico)) > 0
+        );
+        const topGestor = gestoresComDados[0];
         const avgSuccess =
-          gestores.reduce((acc, gestor) => acc + gestor.taxa_sucesso, 0) / Math.max(gestores.length, 1);
+          gestoresComDados.reduce((acc, gestor) => acc + gestor.taxa_sucesso, 0) / Math.max(gestoresComDados.length, 1);
+        const avgScore =
+          gestoresComDados.reduce((acc, gestor) => acc + (gestor.score_composto ?? 0), 0) / Math.max(gestoresComDados.length, 1);
 
         return (
           <div className="space-y-8 pb-10">
             <div className="grid gap-3 md:grid-cols-3">
               <InsightChip
-                label="Melhor taxa de sucesso"
-                value={topGestor ? `${topGestor.nome} · ${formatPercent(topGestor.taxa_sucesso)}` : "—"}
+                label="Melhores métricas"
+                value={topGestor ? `${topGestor.nome} · ${formatPercent(topGestor.score_composto ?? 0)}` : "—"}
                 tone="yellow"
                 icon={Trophy}
-                tooltip="Gestor com maior percentual de clientes em status Bom dentro da própria carteira ativa com STATUS CLIENTE preenchido."
+                tooltip="Ranking composto por taxa de sucesso, LTV médio por mês e volume de clientes com status preenchido. Evita que uma carteira muito pequena lidere só por ter poucos clientes bons."
               />
               <InsightChip
-                label="Média da equipe"
-                value={formatPercent(avgSuccess)}
+                label="Métrica média da equipe"
+                value={formatPercent(avgScore)}
                 tone="blue"
                 icon={BarChart3}
-                tooltip="Média simples da taxa de sucesso de todos os gestores listados nesta página."
+                tooltip="Média do score composto da equipe. Combina taxa de sucesso, LTV médio por mês e volume de clientes com status preenchido."
               />
               <InsightChip
                 label="Gestores ativos"
                 value={String(gestores.length)}
                 tone="green"
                 icon={Users}
-                tooltip="Quantidade de gestores encontrados na BASE_CLIENTES. Quando a API nova estiver publicada, inclui todos os gestores da base."
+                tooltip="Quantidade de gestores com pelo menos um cliente ativo na BASE_CLIENTES."
               />
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
-              <GestorStatusCard gestores={gestores} />
-              <GestorPerformanceChart gestores={gestores} />
+              <GestorStatusCard gestores={gestoresComDados} />
+              <GestorPerformanceChart gestores={gestoresComDados} />
             </div>
 
             <Card className="p-6">
@@ -76,7 +81,7 @@ export function GestoresPage() {
               <CardContent className="mt-5 space-y-4">
                 {gestores.map((gestor, index) => {
                   const tone =
-                    gestor.taxa_sucesso >= 65 ? "green" : gestor.taxa_sucesso >= 45 ? "yellow" : "red";
+                    (gestor.score_composto ?? 0) >= 65 ? "green" : (gestor.score_composto ?? 0) >= 45 ? "yellow" : "red";
 
                   return (
                     <div key={gestor.nome} className="theme-soft-surface rounded-[22px] border p-4">
@@ -87,16 +92,18 @@ export function GestoresPage() {
                           </div>
                           <div>
                             <p className="theme-text text-base font-semibold">{gestor.nome}</p>
-                            <p className="theme-muted text-sm">{formatMonths(gestor.ltv_medio)} meses de LTV médio por mês</p>
+                            <p className="theme-muted text-sm">
+                              {gestor.clientes_com_status ?? (gestor.bons + gestor.alerta + gestor.critico)} clientes com status · {formatMonths(gestor.ltv_medio)} meses de LTV médio por mês
+                            </p>
                           </div>
                         </div>
-                        <Badge tone={tone}>{formatPercent(gestor.taxa_sucesso)}</Badge>
+                        <Badge tone={tone}>{formatPercent(gestor.score_composto ?? 0)}</Badge>
                       </div>
                       <div className="theme-border mt-4 h-3 overflow-hidden rounded-full border bg-[var(--surface)]">
                         <div
                           className="h-full rounded-full transition-all"
                           style={{
-                            width: `${Math.max(gestor.taxa_sucesso, 4)}%`,
+                            width: `${Math.max(gestor.score_composto ?? 0, 4)}%`,
                             background:
                               tone === "green"
                                 ? "linear-gradient(90deg, var(--success-color), rgba(255,255,255,0.85))"

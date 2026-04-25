@@ -1,10 +1,13 @@
 export type GestorMetric = {
   nome: string;
+  ativos?: number;
+  clientes_com_status?: number;
   bons: number;
   alerta: number;
   critico: number;
   taxa_sucesso: number;
   ltv_medio: number;
+  score_composto?: number;
 };
 
 export type EvolucaoMensal = {
