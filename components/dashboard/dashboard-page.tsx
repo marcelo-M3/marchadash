@@ -4,13 +4,17 @@ import type { Route } from "next";
 import { AlertTriangle, ShieldAlert, ShieldCheck, Users } from "lucide-react";
 import { DashboardDataPage } from "@/components/dashboard/dashboard-shell";
 import {
-  GestorCrossMetricSummary,
+  buildGestorMetricsFromBase,
+  GestorPerformanceChart,
+  HealthByOriginChart,
   InsightChip,
+  LtvDistributionChart,
   MetricCard,
   OrigemMixCard,
   SuccessGaugeCard,
   SummaryCard
 } from "@/components/dashboard/dashboard-shared";
+import type { BaseClienteDetalhado } from "@/lib/types";
 import { formatMonths, formatPercent, formatSignedPercent } from "@/lib/utils";
 
 export function DashboardPage() {
@@ -35,6 +39,40 @@ export function DashboardPage() {
             color: origemPalette[index % origemPalette.length]
           }))
           .sort((a, b) => b.value - a.value);
+        const activeBase = (data.base_clientes_detalhada ?? []).filter((record) => record.ativo === "Sim");
+        const ltvDistribution = [
+          { faixa: "0–3", min: 0, max: 3 },
+          { faixa: "4–6", min: 4, max: 6 },
+          { faixa: "7–12", min: 7, max: 12 },
+          { faixa: "13–18", min: 13, max: 18 },
+          { faixa: "19+", min: 19, max: Number.POSITIVE_INFINITY }
+        ].map((bin) => ({
+          faixa: bin.faixa,
+          quantidade: activeBase.filter((record) => {
+            const ltv = record.ltv_meses ?? 0;
+            return ltv >= bin.min && ltv <= bin.max;
+          }).length
+        }));
+        const healthByOrigin = Array.from(
+          activeBase.reduce<Map<string, { origem: string; bom: number; alerta: number; critico: number }>>((acc, record) => {
+            const origem = record.origem || "Sem origem";
+            if (!acc.has(origem)) {
+              acc.set(origem, { origem, bom: 0, alerta: 0, critico: 0 });
+            }
+            const item = acc.get(origem)!;
+            if (record.status === "bom") item.bom += 1;
+            if (record.status === "alerta") item.alerta += 1;
+            if (record.status === "critico") item.critico += 1;
+            return acc;
+          }, new Map())
+        )
+          .map(([, value]) => value)
+          .sort((a, b) => b.bom + b.alerta + b.critico - (a.bom + a.alerta + a.critico));
+        const gestores = (
+          data.base_clientes_detalhada?.length
+            ? buildGestorMetricsFromBase(data.base_clientes_detalhada as BaseClienteDetalhado[])
+            : data.por_gestor
+        ).filter((gestor) => (gestor.clientes_com_status ?? (gestor.bons + gestor.alerta + gestor.critico)) > 0);
 
         return (
           <div className="space-y-8 pb-10">
@@ -114,12 +152,21 @@ export function DashboardPage() {
             </div>
 
             <div className="grid gap-4 xl:grid-cols-2">
-              <SummaryCard title="Métricas cruzadas por gestor" description="Cruza taxa de sucesso e LTV médio por mês das carteiras por gestor.">
-                <GestorCrossMetricSummary gestores={data.por_gestor} />
+              <SummaryCard title="Mapa de performance" description="Cruza clientes ativos, taxa de sucesso e LTV médio por mês em uma única leitura por gestor.">
+                <GestorPerformanceChart gestores={gestores} />
               </SummaryCard>
 
               <SummaryCard title="Origem dos Clientes" description="Mostra de qual empresa veio cada cliente ativo da base atual.">
                 <OrigemMixCard data={origemData} />
+              </SummaryCard>
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-2">
+              <SummaryCard title="Distribuição de LTV" description="Mostra como a carteira se distribui entre faixas de permanência em meses: 0–3, 4–6, 7–12, 13–18 e 19+ meses.">
+                <LtvDistributionChart data={ltvDistribution} />
+              </SummaryCard>
+              <SummaryCard title="Saúde por origem de cliente" description="Cruza qualidade da carteira com a empresa de origem do lead.">
+                <HealthByOriginChart data={healthByOrigin} />
               </SummaryCard>
             </div>
           </div>

@@ -192,11 +192,11 @@ export function ChartLegendRow({
   items: Array<{ label: string; color: string; description?: string }>;
 }) {
   return (
-    <div className="mb-4 flex flex-wrap gap-3">
+    <div className="mb-4 flex flex-wrap justify-center gap-3 text-center">
       {items.map((item) => (
-        <div key={item.label} className="theme-soft-surface flex items-start gap-2 rounded-full px-3 py-2">
+        <div key={item.label} className="theme-soft-surface flex items-center gap-2 rounded-full px-3 py-2">
           <span
-            className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
+            className="h-2.5 w-2.5 shrink-0 rounded-full"
             style={{ backgroundColor: item.color }}
           />
           <div className="min-w-0">
@@ -720,27 +720,13 @@ export function GestorStatusCard({ gestores }: { gestores: GestorMetric[] }) {
         <div className="h-[340px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart layout="vertical" data={chartData} margin={{ top: 0, right: 0, left: 6, bottom: 0 }}>
-              <defs>
-                <linearGradient id="statusGradientGreen" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#1f8f4d" />
-                  <stop offset="100%" stopColor="#61d975" />
-                </linearGradient>
-                <linearGradient id="statusGradientYellow" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#d88a05" />
-                  <stop offset="100%" stopColor="#ffc603" />
-                </linearGradient>
-                <linearGradient id="statusGradientRed" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#d11837" />
-                  <stop offset="100%" stopColor="#ff4c61" />
-                </linearGradient>
-              </defs>
               <CartesianGrid horizontal={false} strokeDasharray="3 3" />
               <XAxis type="number" hide />
               <YAxis dataKey="nome" type="category" width={98} axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="bom" name="Bom" stackId="status" fill="url(#statusGradientGreen)" radius={[10, 0, 0, 10]} />
-              <Bar dataKey="alerta" name="Alerta" stackId="status" fill="url(#statusGradientYellow)" />
-              <Bar dataKey="critico" name="Crítico" stackId="status" fill="url(#statusGradientRed)" radius={[0, 10, 10, 0]} />
+              <Bar dataKey="bom" name="Bom" stackId="status" fill="#3ed67c" radius={[10, 0, 0, 10]} />
+              <Bar dataKey="alerta" name="Alerta" stackId="status" fill="#ffbe3b" />
+              <Bar dataKey="critico" name="Crítico" stackId="status" fill="#ff5d73" radius={[0, 10, 10, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -762,47 +748,43 @@ export function GestorPerformanceChart({ gestores }: { gestores: GestorMetric[] 
     .sort((a, b) => (b.score_composto ?? 0) - (a.score_composto ?? 0))
     .map((gestor) => ({
       gestor: gestor.nome,
-      taxa_sucesso: gestor.taxa_sucesso,
-      ltv_medio: gestor.ltv_medio,
+      clientes_ativos: gestor.ativos ?? 0,
+      taxa_sucesso: Number(gestor.taxa_sucesso.toFixed(1)),
+      ltv_medio: Number(gestor.ltv_medio.toFixed(1)),
       tooltipLabel: gestor.nome
     }));
 
   return (
-    <Card className="p-6">
-      <CardHeader>
-        <div>
-          <CardTitle>Mapa de performance</CardTitle>
-          <p className="theme-muted mt-1 text-sm">Compara taxa de sucesso e LTV médio por mês com dados reais de cada gestor.</p>
-        </div>
-      </CardHeader>
-      <CardContent className="mt-5">
-        <div className="h-[320px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 8, right: 10, left: -10, bottom: 0 }}>
-              <defs>
-                <linearGradient id="performanceBlue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#1a68ff" />
-                  <stop offset="100%" stopColor="#64a7fe" />
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-              <XAxis dataKey="gestor" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
-              <YAxis yAxisId="left" axisLine={false} tickLine={false} domain={[0, 100]} tick={{ fill: "var(--muted-color)", fontSize: 12 }} tickFormatter={(value) => `${value}%`} />
-              <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar yAxisId="left" dataKey="taxa_sucesso" name="Taxa de sucesso" fill="url(#performanceBlue)" radius={[10, 10, 0, 0]} barSize={28} />
-              <Line yAxisId="right" type="monotone" dataKey="ltv_medio" name="LTV médio por mês" stroke="var(--success-color)" strokeWidth={3} dot={{ r: 4, fill: "var(--success-color)" }} />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
-        <ChartLegendRow
-          items={[
-            { label: "Taxa de sucesso", color: "var(--primary-color)", description: "Percentual de clientes BONS." },
-            { label: "LTV médio por mês", color: "var(--success-color)", description: "Permanência média em meses." }
-          ]}
-        />
-      </CardContent>
-    </Card>
+    <div>
+      <div className="h-[320px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={chartData} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+            <defs>
+              <linearGradient id="performanceBlue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#1a68ff" />
+                <stop offset="100%" stopColor="#64a7fe" />
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <XAxis dataKey="gestor" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
+            <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
+            <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} domain={[0, 100]} tick={{ fill: "var(--muted-color)", fontSize: 12 }} tickFormatter={(value) => `${value}%`} />
+            <YAxis yAxisId="ltv" hide domain={[0, "dataMax + 2"]} />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar yAxisId="left" dataKey="clientes_ativos" name="Clientes ativos" fill="url(#performanceBlue)" radius={[10, 10, 0, 0]} barSize={24} />
+            <Line yAxisId="right" type="monotone" dataKey="taxa_sucesso" name="Taxa de sucesso" stroke="var(--primary-color)" strokeWidth={3} dot={{ r: 4, fill: "var(--primary-color)" }} />
+            <Line yAxisId="ltv" type="monotone" dataKey="ltv_medio" name="LTV médio por mês" stroke="var(--success-color)" strokeWidth={3} strokeDasharray="7 5" dot={{ r: 4, fill: "var(--success-color)" }} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+      <ChartLegendRow
+        items={[
+          { label: "Clientes ativos", color: "var(--primary-color)", description: "Volume atual da carteira por gestor." },
+          { label: "Taxa de sucesso", color: "var(--primary-color)", description: "Percentual de clientes BONS na carteira ativa." },
+          { label: "LTV médio por mês", color: "var(--success-color)", description: "Permanência média em meses, arredondada em 1 casa." }
+        ]}
+      />
+    </div>
   );
 }
 

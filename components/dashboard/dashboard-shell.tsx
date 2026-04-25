@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import type { Route } from "next";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, LineChart, LogOut, Moon, RefreshCw, Sun, TrendingUp, Users } from "lucide-react";
+import { LayoutDashboard, LogOut, Moon, RefreshCw, Sun, TrendingUp, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useClientesData } from "@/hooks/use-clientes-data";
 import { ClientesDashboardData } from "@/lib/types";
@@ -22,8 +22,7 @@ const navItems: NavItem[] = [
   { href: "/", label: "Visão Geral", icon: LayoutDashboard },
   { href: "/gestores", label: "Por Gestor", icon: Users },
   { href: "/evolucao-mensal", label: "Evolução Mensal", icon: TrendingUp },
-  { href: "/registro-de-saidas", label: "Análise de Churn", icon: LogOut },
-  { href: "/analises-avancadas", label: "Análises Avançadas", icon: LineChart }
+  { href: "/registro-de-saidas", label: "Análise de Churn", icon: LogOut }
 ];
 
 type ThemeMode = "light" | "dark";
