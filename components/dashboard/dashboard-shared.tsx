@@ -13,6 +13,7 @@ import {
   Smile
 } from "lucide-react";
 import {
+  Area,
   Bar,
   BarChart,
   CartesianGrid,
@@ -224,7 +225,12 @@ export function CustomTooltip({
     payload?: Record<string, any>;
   }) {
     if (item.name === "Taxa de sucesso") return "var(--primary-color)";
-    if (item.name === "LTV médio por mês") return "var(--success-color)";
+    if (item.name === "LTV médio por mês") return "var(--warning-color)";
+    if (item.name === "Clientes ativos") return "var(--success-color)";
+    if (item.name === "Clientes") return "var(--primary-color)";
+    if (item.name === "Base") return "var(--success-color)";
+    if (item.name === "Entradas") return "var(--primary-color)";
+    if (item.name === "Saídas") return "var(--warning-color)";
     if (item.name === "Bom") return "var(--success-color)";
     if (item.name === "Alerta") return "var(--warning-color)";
     if (item.name === "Crítico") return "var(--danger-color)";
@@ -466,15 +472,30 @@ export function OrigemMixCard({
       <div className="mx-auto h-[320px] max-w-[420px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
+            <defs>
+              {normalized.map((item, index) => (
+                <linearGradient
+                  key={`${item.name}-gradient`}
+                  id={`originMixGradient-${index}`}
+                  x1="0"
+                  y1="0"
+                  x2="1"
+                  y2="1"
+                >
+                  <stop offset="0%" stopColor={item.color} stopOpacity={0.98} />
+                  <stop offset="100%" stopColor={item.color} stopOpacity={0.74} />
+                </linearGradient>
+              ))}
+            </defs>
             <Pie
               data={normalized}
               dataKey="value"
               nameKey="name"
               innerRadius={0}
               outerRadius={118}
-              stroke="var(--surface)"
-              strokeWidth={4}
-              paddingAngle={2}
+              stroke="transparent"
+              strokeWidth={0}
+              paddingAngle={0}
               labelLine={false}
               label={({ cx, cy, midAngle, outerRadius, payload }) => {
                 if (!cx || !cy || !outerRadius || !payload?.percent || payload.percent < 6) return null;
@@ -489,8 +510,8 @@ export function OrigemMixCard({
                 );
               }}
             >
-              {normalized.map((entry) => (
-                <Cell key={entry.name} fill={entry.color} />
+              {normalized.map((entry, index) => (
+                <Cell key={entry.name} fill={`url(#originMixGradient-${index})`} />
               ))}
             </Pie>
             <Tooltip
@@ -551,8 +572,8 @@ export function SuccessGaugeCard({
 
   return (
     <div className="mx-auto flex max-w-[360px] flex-col items-center">
-      <div className="relative h-[220px] w-full">
-        <svg viewBox="0 0 200 170" className="h-full w-full overflow-visible">
+      <div className="relative h-[250px] w-full">
+        <svg viewBox="0 0 200 190" className="h-full w-full overflow-visible">
           <path
             d={gaugePath}
             pathLength={100}
@@ -572,49 +593,46 @@ export function SuccessGaugeCard({
           />
         </svg>
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center pt-2 text-center">
+        <div className="absolute inset-x-0 bottom-8 flex flex-col items-center text-center">
           <div
-            className="mb-3 flex h-11 w-11 items-center justify-center rounded-full"
+            className="mb-4 flex h-11 w-11 items-center justify-center rounded-full"
             style={{ backgroundColor: `${scoreColor}24`, color: scoreColor }}
           >
             <FaceIcon className="h-5 w-5" />
           </div>
-          <p className="text-[44px] font-semibold leading-none tracking-[-0.05em]" style={{ color: scoreColor }}>
+          <p className="text-[42px] font-semibold leading-none tracking-[-0.05em]" style={{ color: scoreColor }}>
             {formatPercent(clampedScore)}
           </p>
         </div>
 
-        <div className="theme-muted absolute bottom-0 left-0 text-xs font-medium">0%</div>
-        <div className="theme-muted absolute bottom-0 right-0 text-xs font-medium">100%</div>
+        <div className="theme-muted absolute bottom-2 left-0 text-xs font-medium">0%</div>
+        <div className="theme-muted absolute bottom-2 right-0 text-xs font-medium">100%</div>
       </div>
 
       <div className="mt-4 grid w-full grid-cols-3 gap-2 text-center">
         <div
-          className="rounded-[18px] px-3 py-3"
-          style={{ background: "linear-gradient(135deg, rgba(31,143,77,0.24) 0%, rgba(97,217,117,0.18) 100%)" }}
+          className="metric-card-green rounded-[18px] px-3 py-3"
         >
           <p className="text-xs font-medium uppercase tracking-[0.14em]" style={{ color: "var(--success-color)" }}>
             Bom
           </p>
-          <p className="mt-1 text-lg font-semibold text-white">{formatPercent(bom)}</p>
+          <p className="mt-1 text-lg font-semibold text-current">{formatPercent(bom)}</p>
         </div>
         <div
-          className="rounded-[18px] px-3 py-3"
-          style={{ background: "linear-gradient(135deg, rgba(216,138,5,0.24) 0%, rgba(255,198,3,0.18) 100%)" }}
+          className="metric-card-yellow rounded-[18px] px-3 py-3"
         >
           <p className="text-xs font-medium uppercase tracking-[0.14em]" style={{ color: "var(--warning-color)" }}>
             Alerta
           </p>
-          <p className="mt-1 text-lg font-semibold text-white">{formatPercent(alerta)}</p>
+          <p className="mt-1 text-lg font-semibold text-current">{formatPercent(alerta)}</p>
         </div>
         <div
-          className="rounded-[18px] px-3 py-3"
-          style={{ background: "linear-gradient(135deg, rgba(209,24,55,0.24) 0%, rgba(255,76,97,0.18) 100%)" }}
+          className="metric-card-red rounded-[18px] px-3 py-3"
         >
           <p className="text-xs font-medium uppercase tracking-[0.14em]" style={{ color: "var(--danger-color)" }}>
             Crítico
           </p>
-          <p className="mt-1 text-lg font-semibold text-white">{formatPercent(critico)}</p>
+          <p className="mt-1 text-lg font-semibold text-current">{formatPercent(critico)}</p>
         </div>
       </div>
     </div>
@@ -667,12 +685,18 @@ export function GestorStatusCard({ gestores }: { gestores: GestorMetric[] }) {
   const chartData = gestores
     .filter((gestor) => (gestor.clientes_com_status ?? (gestor.bons + gestor.alerta + gestor.critico)) > 0)
     .sort((a, b) => (b.score_composto ?? 0) - (a.score_composto ?? 0))
-    .map((gestor) => ({
-      nome: gestor.nome,
-      bom: gestor.bons,
-      alerta: gestor.alerta,
-      critico: gestor.critico
-    }));
+    .map((gestor) => {
+      const total = gestor.clientes_com_status ?? (gestor.bons + gestor.alerta + gestor.critico);
+      return {
+        nome: gestor.nome,
+        bom: gestor.bons,
+        alerta: gestor.alerta,
+        critico: gestor.critico,
+        bomPercent: total ? `${Math.round((gestor.bons / total) * 100)}%` : "",
+        alertaPercent: total ? `${Math.round((gestor.alerta / total) * 100)}%` : "",
+        criticoPercent: total ? `${Math.round((gestor.critico / total) * 100)}%` : ""
+      };
+    });
 
   return (
     <Card className="p-6">
@@ -690,9 +714,15 @@ export function GestorStatusCard({ gestores }: { gestores: GestorMetric[] }) {
               <XAxis type="number" hide />
               <YAxis dataKey="nome" type="category" width={132} axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="bom" name="Bom" stackId="status" fill="#39c56b" radius={[8, 0, 0, 8]} />
-              <Bar dataKey="alerta" name="Alerta" stackId="status" fill="#f0b93a" />
-              <Bar dataKey="critico" name="Crítico" stackId="status" fill="#f25b71" radius={[0, 8, 8, 0]} />
+              <Bar dataKey="bom" name="Bom" stackId="status" fill="#2f9e5c" radius={[8, 0, 0, 8]}>
+                <LabelList dataKey="bomPercent" position="center" fill="#ffffff" fontSize={11} fontWeight={700} />
+              </Bar>
+              <Bar dataKey="alerta" name="Alerta" stackId="status" fill="#d8aa2f">
+                <LabelList dataKey="alertaPercent" position="center" fill="#0f172a" fontSize={11} fontWeight={700} />
+              </Bar>
+              <Bar dataKey="critico" name="Crítico" stackId="status" fill="#d15468" radius={[0, 8, 8, 0]}>
+                <LabelList dataKey="criticoPercent" position="center" fill="#ffffff" fontSize={11} fontWeight={700} />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -726,9 +756,9 @@ export function GestorPerformanceChart({ gestores }: { gestores: GestorMetric[] 
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
             <defs>
-              <linearGradient id="performanceSlate" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#5b6788" />
-                <stop offset="100%" stopColor="#33405f" />
+              <linearGradient id="performanceGreen" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--success-color)" stopOpacity={0.95} />
+                <stop offset="100%" stopColor="#1f7a48" stopOpacity={0.78} />
               </linearGradient>
             </defs>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -737,17 +767,17 @@ export function GestorPerformanceChart({ gestores }: { gestores: GestorMetric[] 
             <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} domain={[0, 100]} tick={{ fill: "var(--muted-color)", fontSize: 12 }} tickFormatter={(value) => `${value}%`} />
             <YAxis yAxisId="ltv" hide domain={[0, "dataMax + 2"]} />
             <Tooltip content={<CustomTooltip />} />
-            <Bar yAxisId="left" dataKey="clientes_ativos" name="Clientes ativos" fill="url(#performanceSlate)" radius={[10, 10, 0, 0]} barSize={24} />
+            <Bar yAxisId="left" dataKey="clientes_ativos" name="Clientes ativos" fill="url(#performanceGreen)" radius={[6, 6, 2, 2]} barSize={24} />
             <Line yAxisId="right" type="monotone" dataKey="taxa_sucesso" name="Taxa de sucesso" stroke="var(--primary-color)" strokeWidth={3} dot={{ r: 4, fill: "var(--primary-color)" }} />
-            <Line yAxisId="ltv" type="monotone" dataKey="ltv_medio" name="LTV médio por mês" stroke="var(--success-color)" strokeWidth={3} strokeDasharray="7 5" dot={{ r: 4, fill: "var(--success-color)" }} />
+            <Line yAxisId="ltv" type="monotone" dataKey="ltv_medio" name="LTV médio por mês" stroke="var(--warning-color)" strokeWidth={3} strokeDasharray="7 5" dot={{ r: 4, fill: "var(--warning-color)" }} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
       <ChartLegendRow
         items={[
-          { label: "Clientes ativos", color: "#4f5d7d", description: "Volume atual da carteira por gestor." },
+          { label: "Clientes ativos", color: "var(--success-color)", description: "Volume atual da carteira por gestor." },
           { label: "Taxa de sucesso", color: "var(--primary-color)", description: "Percentual de clientes BONS na carteira ativa." },
-          { label: "LTV médio por mês", color: "var(--success-color)", description: "Permanência média em meses, arredondada em 1 casa." }
+          { label: "LTV médio por mês", color: "var(--warning-color)", description: "Permanência média em meses, arredondada em 1 casa." }
         ]}
       />
     </div>
@@ -859,10 +889,17 @@ export function LtvDistributionChart({
 }: {
   data: Array<{ faixa: string; quantidade: number }>;
 }) {
+  const total = data.reduce((acc, item) => acc + item.quantidade, 0);
+  const chartData = data.map((item) => ({
+    ...item,
+    percent: total ? (item.quantidade / total) * 100 : 0,
+    tooltipLabel: `${item.faixa} meses`
+  }));
+
   return (
     <div className="h-[280px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 4, left: -8, bottom: 18 }} barCategoryGap={18}>
+        <BarChart data={chartData} margin={{ top: 24, right: 4, left: -8, bottom: 18 }} barCategoryGap={18}>
           <defs>
             <linearGradient id="ltvDistribution" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#1a68ff" />
@@ -887,7 +924,17 @@ export function LtvDistributionChart({
           />
           <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="quantidade" name="Clientes" fill="url(#ltvDistribution)" radius={[6, 6, 2, 2]} barSize={42} />
+          <Bar dataKey="quantidade" name="Clientes" fill="url(#ltvDistribution)" radius={[6, 6, 2, 2]} barSize={42}>
+            <LabelList
+              dataKey="percent"
+              position="top"
+              formatter={(value: number) => formatPercent(value)}
+              fill="var(--primary-color)"
+              fontSize={11}
+              fontWeight={700}
+              offset={8}
+            />
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -934,7 +981,9 @@ export function ChurnByDimensionChart({
   data: Array<Record<string, any>>;
   palette?: string[];
 }) {
-  const keys = Object.keys(data[0] ?? {}).filter((key) => key !== "mes" && key !== "tooltipLabel");
+  const keys = Object.keys(data[0] ?? {}).filter(
+    (key) => key !== "mes" && key !== "tooltipLabel" && key !== "ano" && key !== "mesNome"
+  );
   const chartPalette = palette ?? ["#1a68ff", "#4b8dff", "#7ab0ff", "#b7d3ff", "#dce8ff"];
 
   return (
@@ -964,6 +1013,72 @@ export function ChurnByDimensionChart({
           label: key,
           color: chartPalette[index % chartPalette.length]
         }))}
+      />
+    </div>
+  );
+}
+
+export function EntryExitBaseChart({
+  data
+}: {
+  data: Array<{
+    axisLabel: string;
+    tooltipLabel: string;
+    base_inicio: number;
+    entradas: number | null;
+    saidas: number;
+  }>;
+}) {
+  return (
+    <div className="h-[380px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={data} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="entryArea" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="rgba(26, 104, 255, 0.38)" />
+              <stop offset="100%" stopColor="rgba(26, 104, 255, 0.03)" />
+            </linearGradient>
+            <linearGradient id="baseBarGlass" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="rgba(97, 217, 117, 0.9)" />
+              <stop offset="100%" stopColor="rgba(97, 217, 117, 0.3)" />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey="axisLabel" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
+          <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
+          <Tooltip content={<CustomTooltip />} />
+          <Bar
+            dataKey="base_inicio"
+            name="Base"
+            fill="url(#baseBarGlass)"
+            radius={[6, 6, 2, 2]}
+            barSize={24}
+          />
+          <Area
+            type="monotone"
+            dataKey="entradas"
+            name="Entradas"
+            stroke="var(--primary-color)"
+            fill="url(#entryArea)"
+            strokeWidth={3}
+          />
+          <Line
+            type="monotone"
+            dataKey="saidas"
+            name="Saídas"
+            stroke="var(--warning-color)"
+            strokeWidth={3}
+            strokeDasharray="8 6"
+            dot={{ r: 4, fill: "var(--warning-color)", stroke: "var(--surface)", strokeWidth: 2 }}
+          />
+        </ComposedChart>
+      </ResponsiveContainer>
+      <ChartLegendRow
+        items={[
+          { label: "Base", color: "var(--success-color)", description: "Volume total de clientes ativos no início do período." },
+          { label: "Entradas", color: "var(--primary-color)", description: "Clientes que entraram no período selecionado." },
+          { label: "Saídas", color: "var(--warning-color)", description: "Clientes que saíram no período selecionado." }
+        ]}
       />
     </div>
   );
@@ -1080,7 +1195,7 @@ export function SummaryCard({
     <Card className="p-6 sm:p-7">
       <CardHeader className="flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0">
-          <CardTitle className="display-heading text-[1.55rem] sm:text-[1.7rem]">{title}</CardTitle>
+          <CardTitle className="display-heading text-[30.6px] leading-[1.05]">{title}</CardTitle>
           {description ? <p className="theme-muted mt-2 max-w-2xl text-sm leading-6">{description}</p> : null}
         </div>
         {actions}

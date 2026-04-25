@@ -86,7 +86,7 @@ export function GestoresPage() {
               <CardContent className="mt-5 space-y-4">
                 {gestoresComDados.map((gestor, index) => {
                   const tone =
-                    (gestor.score_composto ?? 0) >= 65 ? "green" : (gestor.score_composto ?? 0) >= 45 ? "yellow" : "red";
+                    (gestor.score_composto ?? 0) >= 50 ? "green" : (gestor.score_composto ?? 0) >= 30 ? "yellow" : "red";
 
                   return (
                     <div key={gestor.nome} className="theme-soft-surface rounded-[22px] border p-4">
@@ -98,7 +98,7 @@ export function GestoresPage() {
                           <div>
                             <p className="theme-text text-base font-semibold">{gestor.nome}</p>
                             <p className="theme-muted text-sm">
-                              {gestor.clientes_com_status ?? (gestor.bons + gestor.alerta + gestor.critico)} clientes com status · {formatMonths(gestor.ltv_medio)} meses de LTV médio por mês
+                              {gestor.ativos ?? 0} clientes ativos · {gestor.clientes_com_status ?? (gestor.bons + gestor.alerta + gestor.critico)} com status · {formatMonths(gestor.ltv_medio)} meses de LTV médio por mês
                             </p>
                           </div>
                         </div>

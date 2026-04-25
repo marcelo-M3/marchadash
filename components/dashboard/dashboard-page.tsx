@@ -5,6 +5,7 @@ import { AlertTriangle, ShieldAlert, ShieldCheck, Users } from "lucide-react";
 import { DashboardDataPage } from "@/components/dashboard/dashboard-shell";
 import {
   buildGestorMetricsFromBase,
+  EntryExitBaseChart,
   GestorPerformanceChart,
   HealthByOriginChart,
   LtvDistributionChart,
@@ -39,6 +40,11 @@ export function DashboardPage() {
           }))
           .sort((a, b) => b.value - a.value);
         const activeBase = (data.base_clientes_detalhada ?? []).filter((record) => record.ativo === "Sim");
+        const overviewMonthlyRows = data.evolucao_mensal.slice(-12).map((item) => ({
+          ...item,
+          axisLabel: item.mes.split("/")[0].slice(0, 3),
+          tooltipLabel: item.mes
+        }));
         const ltvDistribution = [
           { faixa: "0–3", min: 0, max: 3 },
           { faixa: "4–6", min: 4, max: 6 },
@@ -76,12 +82,6 @@ export function DashboardPage() {
         return (
           <div className="space-y-10 pb-10">
             <section className="space-y-4">
-              <div>
-                <p className="section-kicker">Indicadores centrais</p>
-                <p className="theme-muted mt-2 max-w-2xl text-sm leading-6">
-                  Leitura rápida da base ativa antes de aprofundar nas análises operacionais.
-                </p>
-              </div>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <MetricCard
                 title="Clientes ativos"
@@ -122,8 +122,8 @@ export function DashboardPage() {
               </div>
             </section>
 
-            <section>
-              <SummaryCard title="Índice de sucesso">
+            <section className="grid gap-4 xl:grid-cols-2">
+              <SummaryCard title="Índice de sucesso" description="Leitura consolidada da saúde da carteira com base na participação de clientes bons, em alerta e críticos.">
                 <SuccessGaugeCard
                   score={data.taxa_sucesso}
                   bom={data.perc_bons}
@@ -131,16 +131,12 @@ export function DashboardPage() {
                   critico={data.perc_critico}
                 />
               </SummaryCard>
+              <SummaryCard title="Entradas, saídas e base" description="Análise o tamanho da base, entrada e saída de clientes por período.">
+                <EntryExitBaseChart data={overviewMonthlyRows} />
+              </SummaryCard>
             </section>
 
-            <section className="space-y-4">
-              <div>
-                <p className="section-kicker">Leitura operacional</p>
-                <p className="theme-muted mt-2 max-w-2xl text-sm leading-6">
-                  Aqui ficam os cruzamentos principais para entender composição da base, eficiência por gestor e permanência.
-                </p>
-              </div>
-              <div className="grid gap-4 xl:grid-cols-2">
+            <section className="grid gap-4 xl:grid-cols-2">
               <SummaryCard title="Mapa de performance" description="Análise com base nos clientes ativos, taxa de sucesso e LTV médio/mês.">
                 <GestorPerformanceChart gestores={gestores} />
               </SummaryCard>
@@ -148,7 +144,6 @@ export function DashboardPage() {
               <SummaryCard title="Origem dos clientes ativos" description="Análise do canal de origem dos clientes ativos da base atual.">
                 <OrigemMixCard data={origemData} />
               </SummaryCard>
-              </div>
             </section>
 
             <section className="grid gap-4 xl:grid-cols-2">

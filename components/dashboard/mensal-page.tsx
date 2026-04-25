@@ -2,19 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { BarChart3, CalendarRange, Users } from "lucide-react";
-import {
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis
-} from "recharts";
 import { DashboardDataPage } from "@/components/dashboard/dashboard-shell";
 import {
   ChurnByDimensionChart,
-  CustomTooltip,
+  EntryExitBaseChart,
   EvolucaoTable,
   HealthByOriginChart,
   InsightChip,
@@ -371,48 +362,7 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
           )}
         >
           <div className="space-y-4">
-          <div className="h-[380px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={chartRows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="axisLabel" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
-                <YAxis
-                  yAxisId="left"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "var(--muted-color)", fontSize: 12 }}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="entradas"
-                  name="Entradas"
-                  stroke="#61d975"
-                  strokeWidth={3}
-                  dot={{ r: 4, fill: "#61d975", stroke: "var(--surface)", strokeWidth: 2 }}
-                />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="saidas"
-                  name="Saídas"
-                  stroke="#f0b93a"
-                  strokeWidth={3}
-                  dot={{ r: 4, fill: "#f0b93a", stroke: "var(--surface)", strokeWidth: 2 }}
-                />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="base_inicio"
-                  name="Base"
-                  stroke="var(--primary-color)"
-                  strokeWidth={3}
-                  dot={{ r: 4, fill: "var(--primary-color)", stroke: "var(--surface)", strokeWidth: 2 }}
-                />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
+          <EntryExitBaseChart data={chartRows} />
           <div className="theme-strong-surface rounded-[18px] border p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-primary">Leitura rápida</p>
             <p className="theme-text mt-2 text-sm leading-6">{chartInsight}</p>
