@@ -22,11 +22,11 @@
   --success-color: #16a34a;
   --warning-color: #d97706;
   --danger-color: #dc2626;
-  --origin-track: #d6dde9;
-  --origin-ring-1: #6c768f;
-  --origin-ring-2: #98a3bc;
-  --origin-ring-3: #c6cede;
-  --origin-ring-4: #dde3ee;
+  --origin-track: #dce8ff;
+  --origin-ring-1: #246bff;
+  --origin-ring-2: #64a7fe;
+  --origin-ring-3: #9fc6ff;
+  --origin-ring-4: #cddfff;
 }
 
 [data-theme="dark"] {

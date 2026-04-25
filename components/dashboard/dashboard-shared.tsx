@@ -381,7 +381,7 @@ export function MetricCard({
 export function HealthDonut({
   data
 }: {
-  data: Array<{ name: string; value: number; color: string }>;
+  data: Array<{ name: string; value: number; percent?: number; color: string }>;
 }) {
   const total = data.reduce((acc, item) => acc + item.value, 0);
 
@@ -400,8 +400,9 @@ export function HealthDonut({
               strokeWidth={5}
               paddingAngle={2}
               labelLine={false}
-              label={({ cx, cy, midAngle, outerRadius, percent, payload }) => {
-                if (!percent || percent < 0.1 || !cx || !cy || !outerRadius) return null;
+              label={({ cx, cy, midAngle, outerRadius, payload, value }) => {
+                const exactPercent = payload?.percent ?? (total ? ((Number(value) || 0) / total) * 100 : 0);
+                if (!exactPercent || exactPercent < 0.1 || !cx || !cy || !outerRadius) return null;
                 var radius = outerRadius * 0.62;
                 var x = cx + radius * Math.cos((-midAngle * Math.PI) / 180);
                 var y = cy + radius * Math.sin((-midAngle * Math.PI) / 180);
@@ -413,7 +414,7 @@ export function HealthDonut({
                       {payload?.name}
                     </tspan>
                     <tspan x={x} dy="1.35em" fontSize="20" fontWeight={700}>
-                      {formatPercent(percent * 100)}
+                      {formatPercent(exactPercent)}
                     </tspan>
                   </text>
                 );

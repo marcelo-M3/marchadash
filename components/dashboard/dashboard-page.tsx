@@ -22,9 +22,9 @@ export function DashboardPage() {
     >
       {(data) => {
         const healthPieData = [
-          { name: "Bom", value: data.clientes_bons, color: statusColors.bom },
-          { name: "Alerta", value: data.clientes_alerta, color: statusColors.alerta },
-          { name: "Crítico", value: data.clientes_critico, color: statusColors.critico }
+          { name: "Bom", value: data.clientes_bons, percent: data.perc_bons, color: statusColors.bom },
+          { name: "Alerta", value: data.clientes_alerta, percent: data.perc_alerta, color: statusColors.alerta },
+          { name: "Crítico", value: data.clientes_critico, percent: data.perc_critico, color: statusColors.critico }
         ];
         const origemPalette = ["var(--primary-color)", "#64a7fe", "#c9cfe5", "#a8b2d2"];
         const origemSource = data.base_clientes_detalhada?.filter((cliente) => cliente.ativo === "Sim") ?? data.clientes_detalhados ?? [];
