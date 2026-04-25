@@ -3,8 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CalendarRange, Clock3 } from "lucide-react";
 import { DashboardDataPage } from "@/components/dashboard/dashboard-shell";
-import { InsightChip, MonthExitBar, SummaryCard, getChurnTone } from "@/components/dashboard/dashboard-shared";
+import {
+  ChurnByDimensionChart,
+  CohortRetentionHeatmap,
+  InsightChip,
+  MonthExitBar,
+  SummaryCard,
+  getChurnTone
+} from "@/components/dashboard/dashboard-shared";
 import { Badge } from "@/components/ui/badge";
+import type { BaseClienteDetalhado, ClientesDashboardData } from "@/lib/types";
 import { formatPercent } from "@/lib/utils";
 
 type ExitItem = {
@@ -22,18 +30,51 @@ function parseExitMonth(label: string): { mes: string; ano: string } {
   return { mes, ano: ano ?? "" };
 }
 
+const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+function parseMonthYear(value: string | null) {
+  if (!value) return null;
+  const match = value.match(/^(\d{2})\/(\d{2,4})$/);
+  if (!match) return null;
+  const month = Number(match[1]);
+  const rawYear = Number(match[2]);
+  if (!month || month < 1 || month > 12) return null;
+  const year = rawYear < 100 ? rawYear + 2000 : rawYear;
+  return new Date(year, month - 1, 1);
+}
+
+function diffMonths(start: Date, end: Date) {
+  return (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+}
+
+function monthKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monthLabel(date: Date) {
+  return `${monthNames[date.getMonth()]}/${date.getFullYear()}`;
+}
+
+function resolveEntry(record: BaseClienteDetalhado) {
+  return parseMonthYear(record.ma_entrada) || (record.data_inicio ? new Date(record.data_inicio.split("/").reverse().join("-")) : null);
+}
+
+function resolveExit(record: BaseClienteDetalhado) {
+  return parseMonthYear(record.ma_saida) || (record.data_saida ? new Date(record.data_saida.split("/").reverse().join("-")) : null);
+}
+
 export function SaidasPage() {
   return (
     <DashboardDataPage
-      title="Registro de saídas"
-      description="Veja o volume de saídas ao longo do tempo e filtre o detalhamento por mês e ano."
+      title="Análise de Churn"
+      description="Veja o churn ao longo do tempo, analise saídas e filtre o detalhamento por mês e ano."
     >
       {(data) => <SaidasContent data={data} />}
     </DashboardDataPage>
   );
 }
 
-function SaidasContent({ data }: { data: { saidas_por_mes: ExitItem[] | any[] } & any }) {
+function SaidasContent({ data }: { data: ClientesDashboardData & { saidas_por_mes: ExitItem[] | any[] } }) {
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
 
@@ -83,6 +124,105 @@ function SaidasContent({ data }: { data: { saidas_por_mes: ExitItem[] | any[] } 
     return current;
   }, null);
   const latestExit = exitItems[exitItems.length - 1];
+  const base = data.base_clientes_detalhada ?? [];
+
+  const prepared = useMemo(() => {
+    return base
+      .map((record) => {
+        const entry = resolveEntry(record);
+        const exit = resolveExit(record);
+        return {
+          ...record,
+          entry,
+          exit
+        };
+      })
+      .filter((record) => record.entry);
+  }, [base]);
+
+  const cohortRows = useMemo(() => {
+    const groups = new Map<string, typeof prepared>();
+    prepared.forEach((record) => {
+      if (!record.entry) return;
+      const key = monthLabel(record.entry);
+      const current = groups.get(key) ?? [];
+      current.push(record);
+      groups.set(key, current);
+    });
+
+    return Array.from(groups.entries())
+      .sort((a, b) => {
+        const da = resolveEntry(a[1][0] as BaseClienteDetalhado)!;
+        const db = resolveEntry(b[1][0] as BaseClienteDetalhado)!;
+        return db.getTime() - da.getTime();
+      })
+      .slice(0, 8)
+      .map(([cohort, records]) => {
+        const values = Array.from({ length: 6 }).map((_, index) => {
+          const retained = records.filter((record) => {
+            if (!record.entry) return false;
+            if (!record.exit) return true;
+            return diffMonths(record.entry, record.exit) >= index;
+          }).length;
+          return records.length ? Number(((retained / records.length) * 100).toFixed(1)) : null;
+        });
+        return { cohort, values };
+      });
+  }, [prepared]);
+
+  const churnByOrigin = useMemo(() => {
+    const exited = prepared.filter((record) => record.exit && record.origem);
+    const topOrigins = Array.from(
+      exited.reduce((acc, record) => {
+        const key = record.origem || "Sem origem";
+        acc.set(key, (acc.get(key) ?? 0) + 1);
+        return acc;
+      }, new Map<string, number>())
+    )
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([name]) => name);
+
+    const months = Array.from(new Set(exited.map((record) => monthKey(record.exit!))))
+      .sort()
+      .slice(-12);
+
+    return months.map((key) => {
+      const date = new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1);
+      const row: Record<string, any> = { mes: monthNames[date.getMonth()], tooltipLabel: monthLabel(date) };
+      topOrigins.forEach((origin) => {
+        row[origin] = exited.filter((record) => monthKey(record.exit!) === key && (record.origem || "Sem origem") === origin).length;
+      });
+      return row;
+    });
+  }, [prepared]);
+
+  const churnByGestor = useMemo(() => {
+    const exited = prepared.filter((record) => record.exit && record.gestor);
+    const topGestores = Array.from(
+      exited.reduce((acc, record) => {
+        const key = record.gestor || "Sem gestor";
+        acc.set(key, (acc.get(key) ?? 0) + 1);
+        return acc;
+      }, new Map<string, number>())
+    )
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name]) => name);
+
+    const months = Array.from(new Set(exited.map((record) => monthKey(record.exit!))))
+      .sort()
+      .slice(-12);
+
+    return months.map((key) => {
+      const date = new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1);
+      const row: Record<string, any> = { mes: monthNames[date.getMonth()], tooltipLabel: monthLabel(date) };
+      topGestores.forEach((gestor) => {
+        row[gestor] = exited.filter((record) => monthKey(record.exit!) === key && (record.gestor || "Sem gestor") === gestor).length;
+      });
+      return row;
+    });
+  }, [prepared]);
 
   return (
     <div className="space-y-8 pb-10">
@@ -111,7 +251,7 @@ function SaidasContent({ data }: { data: { saidas_por_mes: ExitItem[] | any[] } 
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
-        <SummaryCard title="Volume de saídas por mês" description="Mostra quantos clientes saíram em cada período.">
+        <SummaryCard title="Volume de churn por mês" description="Mostra quantos clientes saíram nos últimos 12 meses.">
           <MonthExitBar data={data.saidas_por_mes} />
         </SummaryCard>
 
@@ -185,6 +325,25 @@ function SaidasContent({ data }: { data: { saidas_por_mes: ExitItem[] | any[] } 
           )}
         </SummaryCard>
       </div>
+
+      {!!data.base_clientes_detalhada?.length && (
+        <>
+          <div className="grid gap-4 xl:grid-cols-2">
+            <SummaryCard title="Cohort de retenção" description="Mostra retenção real por safra de entrada ao longo dos primeiros meses.">
+              <CohortRetentionHeatmap rows={cohortRows} />
+            </SummaryCard>
+            <SummaryCard title="Churn por origem de cliente" description="Mostra quais origens concentram mais saídas em cada mês.">
+              <ChurnByDimensionChart data={churnByOrigin} dimensionLabel="Origem" />
+            </SummaryCard>
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-1">
+            <SummaryCard title="Churn por gestor" description="Mostra quais carteiras concentram mais saídas ao longo do tempo.">
+              <ChurnByDimensionChart data={churnByGestor} dimensionLabel="Gestor" />
+            </SummaryCard>
+          </div>
+        </>
+      )}
     </div>
   );
 }

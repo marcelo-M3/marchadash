@@ -843,26 +843,26 @@ export function MonthExitBar({ data }: { data: SaidasPorMes[] }) {
   const monthData = data.slice(-12).map((item) => ({
     mes: shortMonthLabel(item.mes),
     tooltipLabel: item.mes,
-    saidas: item.clientes.length,
-    churn: item.churn ?? 0
+    saidas: item.clientes.length
   }));
+  const maxSaidas = Math.max(...monthData.map((item) => item.saidas), 1);
 
   return (
     <div className="h-[220px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={monthData} margin={{ top: 8, right: 0, left: -16, bottom: 0 }}>
           <defs>
-            <linearGradient id="exitBarBlue" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="exitBarBlueLight" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#9fc6ff" />
+              <stop offset="100%" stopColor="#64a7fe" />
+            </linearGradient>
+            <linearGradient id="exitBarBlueMid" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#1a68ff" />
               <stop offset="100%" stopColor="#64a7fe" />
             </linearGradient>
-            <linearGradient id="exitBarYellow" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ffc603" />
-              <stop offset="100%" stopColor="#efc42c" />
-            </linearGradient>
-            <linearGradient id="exitBarRed" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ff2d45" />
-              <stop offset="100%" stopColor="#fe576b" />
+            <linearGradient id="exitBarBlueDark" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#0d1732" />
+              <stop offset="100%" stopColor="#1a68ff" />
             </linearGradient>
           </defs>
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -874,11 +874,11 @@ export function MonthExitBar({ data }: { data: SaidasPorMes[] }) {
               <Cell
                 key={`${entry.tooltipLabel}-${entry.saidas}`}
                 fill={
-                  entry.churn > 12
-                    ? "url(#exitBarRed)"
-                    : entry.churn > 8
-                      ? "url(#exitBarYellow)"
-                      : "url(#exitBarBlue)"
+                  entry.saidas / maxSaidas >= 0.75
+                    ? "url(#exitBarBlueDark)"
+                    : entry.saidas / maxSaidas >= 0.4
+                      ? "url(#exitBarBlueMid)"
+                      : "url(#exitBarBlueLight)"
                 }
               />
             ))}

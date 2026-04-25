@@ -16,8 +16,8 @@
   --nav-active: #edf4ff;
   --icon-surface: #f2f5fa;
   --shadow-color: rgba(15, 23, 42, 0.06);
-  --tooltip-bg: rgba(255, 255, 255, 0.98);
-  --tooltip-border: rgba(36, 107, 255, 0.18);
+  --tooltip-bg: #151b2d;
+  --tooltip-border: #23293b;
   --primary-color: #246bff;
   --success-color: #16a34a;
   --warning-color: #d97706;
@@ -43,8 +43,8 @@
   --nav-active: rgba(26, 104, 255, 0.18);
   --icon-surface: #151b2d;
   --shadow-color: rgba(5, 8, 17, 0.36);
-  --tooltip-bg: rgba(10, 14, 26, 0.98);
-  --tooltip-border: rgba(26, 104, 255, 0.28);
+  --tooltip-bg: #151b2d;
+  --tooltip-border: #23293b;
   --primary-color: #1a68ff;
   --success-color: #61d975;
   --warning-color: #ffc603;

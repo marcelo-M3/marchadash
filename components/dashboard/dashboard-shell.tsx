@@ -22,7 +22,7 @@ const navItems: NavItem[] = [
   { href: "/", label: "Visão Geral", icon: LayoutDashboard },
   { href: "/gestores", label: "Por Gestor", icon: Users },
   { href: "/evolucao-mensal", label: "Evolução Mensal", icon: TrendingUp },
-  { href: "/registro-de-saidas", label: "Registro de Saídas", icon: LogOut },
+  { href: "/registro-de-saidas", label: "Análise de Churn", icon: LogOut },
   { href: "/analises-avancadas", label: "Análises Avançadas", icon: LineChart }
 ];
 
