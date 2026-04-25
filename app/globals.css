@@ -4,12 +4,27 @@
 
 :root {
   color-scheme: light;
-  --app-bg: #f5f7fb;
+  --font-sans:
+    "Avenir Next",
+    "Segoe UI",
+    "Helvetica Neue",
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+  --font-display:
+    "Avenir Next",
+    "SF Pro Display",
+    "Segoe UI",
+    "Helvetica Neue",
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+  --app-bg: #f3f6fb;
   --surface: #ffffff;
-  --surface-soft: #f8fafc;
-  --surface-strong: #eef4ff;
+  --surface-soft: #f7f9fe;
+  --surface-strong: #edf3ff;
   --sidebar-surface: #ffffff;
-  --border-color: rgba(15, 23, 42, 0.06);
+  --border-color: rgba(15, 23, 42, 0.055);
   --text-color: #0f172a;
   --muted-color: #667085;
   --nav-hover: #f4f7fb;
@@ -34,9 +49,9 @@
   --app-bg: #050811;
   --surface: #0a0e1a;
   --surface-soft: #151b2d;
-  --surface-strong: #26304a;
+  --surface-strong: #202842;
   --sidebar-surface: #0a0e1a;
-  --border-color: rgba(201, 207, 229, 0.08);
+  --border-color: rgba(201, 207, 229, 0.06);
   --text-color: #ffffff;
   --muted-color: #a8b2d2;
   --nav-hover: #151b2d;
@@ -57,26 +72,26 @@
 }
 
 .chip-green {
-  border: 1px solid #b7e7c4;
-  background: linear-gradient(135deg, #f0fff5 0%, #dcfce7 48%, #d1fae5 100%);
+  border: 1px solid rgba(31, 143, 77, 0.14);
+  background: linear-gradient(180deg, #f3fff7 0%, #dcfce7 100%);
   color: #0f172a;
 }
 
 .chip-blue {
-  border: 1px solid #bdd6ff;
-  background: linear-gradient(135deg, #eef4ff 0%, #dbeafe 52%, #d6e7ff 100%);
+  border: 1px solid rgba(36, 107, 255, 0.14);
+  background: linear-gradient(180deg, #eef4ff 0%, #dbeafe 100%);
   color: #0f172a;
 }
 
 .chip-yellow {
-  border: 1px solid #f5d885;
-  background: linear-gradient(135deg, #fff8df 0%, #fef3c7 52%, #fde68a 100%);
+  border: 1px solid rgba(217, 119, 6, 0.14);
+  background: linear-gradient(180deg, #fff9e6 0%, #fef3c7 100%);
   color: #0f172a;
 }
 
 .chip-red {
-  border: 1px solid #f6b0b8;
-  background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 45%, #fecdd3 100%);
+  border: 1px solid rgba(220, 38, 38, 0.14);
+  background: linear-gradient(180deg, #fff3f4 0%, #ffe4e6 100%);
   color: #0f172a;
 }
 
@@ -116,14 +131,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   background: var(--app-bg);
   color: var(--text-color);
 }
@@ -139,24 +147,25 @@ input {
 }
 
 .panel-card {
-  @apply rounded-panel transition duration-300 hover:-translate-y-0.5;
+  @apply rounded-panel transition duration-300;
   background: var(--surface);
-  border: 1px solid transparent;
-  box-shadow: none;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 14px 34px var(--shadow-color);
 }
 
 [data-theme="light"] .panel-card {
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.05);
 }
 
 [data-theme="dark"] .panel-card {
-  border-color: rgba(255, 255, 255, 0.02);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
 }
 
 .metric-number {
-  font-size: clamp(2.25rem, 3vw, 3rem);
+  font-size: clamp(2rem, 2.7vw, 2.8rem);
   line-height: 1;
   letter-spacing: -0.04em;
+  font-family: var(--font-display), var(--font-sans), sans-serif;
 }
 
 .recharts-cartesian-grid line {
@@ -168,7 +177,7 @@ input {
   border: 1px solid var(--tooltip-border) !important;
   background: var(--tooltip-bg) !important;
   color: var(--text-color) !important;
-  box-shadow: 0 18px 40px var(--shadow-color) !important;
+  box-shadow: 0 16px 30px rgba(5, 8, 17, 0.18) !important;
 }
 
 [data-theme="dark"] .recharts-default-tooltip {
@@ -217,6 +226,7 @@ input {
 .theme-sidebar {
   background: var(--sidebar-surface);
   border-color: var(--border-color);
+  box-shadow: inset -1px 0 0 var(--border-color);
 }
 
 .theme-app {
@@ -252,8 +262,8 @@ input {
 }
 
 .brand-logo {
-  width: 210px;
-  height: 74px;
+  width: 184px;
+  height: 64px;
   margin-inline: auto;
   background: var(--text-color);
   -webkit-mask-image: url("/logomarcha-cropped.png");
@@ -266,4 +276,23 @@ input {
   mask-size: contain;
   -webkit-mask-mode: luminance;
   mask-mode: luminance;
+}
+
+.display-heading {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  letter-spacing: -0.05em;
+}
+
+.section-kicker {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted-color);
+}
+
+.flat-tooltip {
+  background: var(--tooltip-bg);
+  border: 1px solid var(--tooltip-border);
+  box-shadow: 0 16px 30px rgba(5, 8, 17, 0.18);
 }

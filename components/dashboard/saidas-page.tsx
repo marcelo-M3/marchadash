@@ -11,6 +11,7 @@ import {
   getChurnTone
 } from "@/components/dashboard/dashboard-shared";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { BaseClienteDetalhado, ClientesDashboardData } from "@/lib/types";
 import { formatPercent } from "@/lib/utils";
 
@@ -252,6 +253,26 @@ function SaidasContent({ data }: { data: ClientesDashboardData & { saidas_por_me
 
   const originRows = filterDimensionRows(churnByOrigin, originMode, originYear, originMonth);
   const nicheRows = filterDimensionRows(churnByNicho, nichoMode, nichoYear, nichoMonth);
+  const clienteLookup = useMemo(
+    () =>
+      new Map(
+        (data.base_clientes_detalhada ?? []).map((cliente) => [cliente.nome, cliente])
+      ),
+    [data.base_clientes_detalhada]
+  );
+  const detailedExitRows = useMemo(
+    () =>
+      (selectedExit?.clientes ?? []).map((nome) => {
+        const match = clienteLookup.get(nome);
+        return {
+          nome,
+          gestor: match?.gestor ?? "—",
+          origem: match?.origem ?? "—",
+          nicho: match?.nicho ?? "—"
+        };
+      }),
+    [clienteLookup, selectedExit]
+  );
 
   const renderChartActions = (
     mode: ChartViewMode,
@@ -407,15 +428,29 @@ function SaidasContent({ data }: { data: ClientesDashboardData & { saidas_por_me
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {selectedExit.clientes.map((cliente) => (
-                <span
-                  key={`${selectedExit.key}-${cliente}`}
-                  className="theme-surface theme-text rounded-full border px-3 py-2 text-sm"
-                >
-                  {cliente}
-                </span>
-              ))}
+            <div className="theme-surface overflow-hidden rounded-[18px] border">
+              <div className="max-h-[360px] overflow-auto scrollbar-subtle">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Gestor</TableHead>
+                      <TableHead>Origem</TableHead>
+                      <TableHead>Nicho</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {detailedExitRows.map((row) => (
+                      <TableRow key={`${selectedExit.key}-${row.nome}`}>
+                        <TableCell className="theme-text font-medium">{row.nome}</TableCell>
+                        <TableCell>{row.gestor}</TableCell>
+                        <TableCell>{row.origem}</TableCell>
+                        <TableCell>{row.nicho}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </div>
         ) : (

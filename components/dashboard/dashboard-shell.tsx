@@ -60,13 +60,13 @@ export function DashboardShell({
   return (
     <div className="theme-app min-h-screen theme-text">
       <div className="flex min-h-screen flex-col md:flex-row">
-        <aside className="theme-sidebar md:sticky md:top-0 md:h-screen md:w-[280px]">
+        <aside className="theme-sidebar md:sticky md:top-0 md:h-screen md:w-[248px]">
           <div className="flex h-full flex-col">
-            <div className="px-6 py-7">
+            <div className="px-5 py-6">
               <div className="brand-logo" aria-label="Marcha Ads" role="img" />
             </div>
 
-            <nav className="space-y-1 px-4 py-6">
+            <nav className="space-y-1 px-3 py-4">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
@@ -76,7 +76,7 @@ export function DashboardShell({
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "group flex w-full items-center gap-3 rounded-[14px] px-4 py-3 text-left transition duration-200",
+                      "group flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left transition duration-200",
                       isActive
                         ? "bg-primary text-white shadow-sm"
                         : "theme-muted hover:bg-[var(--nav-hover)] hover:text-[var(--text-color)]"
@@ -90,13 +90,13 @@ export function DashboardShell({
                     >
                       <Icon className="h-4 w-4" />
                     </div>
-                    <span className="text-sm font-semibold">{item.label}</span>
+                    <span className="text-sm font-medium">{item.label}</span>
                   </Link>
                 );
               })}
             </nav>
 
-            <div className="mt-auto px-6 py-5">
+            <div className="mt-auto px-5 py-5">
               <div className="mx-auto w-fit rounded-full theme-soft-surface p-1">
                 <div className="flex items-center gap-1">
                   <button
@@ -129,14 +129,14 @@ export function DashboardShell({
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8">
-          <div className="mx-auto w-full max-w-[1380px]">
-          <header className="theme-surface mb-6 rounded-[24px] px-6 py-5">
+        <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-7">
+          <div className="mx-auto w-full max-w-[1360px]">
+          <header className="theme-surface mb-6 rounded-[28px] px-6 py-5 sm:px-7">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl">
-                <p className="theme-muted text-xs uppercase tracking-[0.22em]">Dashboard / Análise de Dados</p>
-                <h1 className="theme-text mt-3 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">{title}</h1>
-                <p className="theme-muted mt-3 max-w-2xl text-sm leading-7">{description}</p>
+                <p className="section-kicker">Dashboard / Análise de Dados</p>
+                <h1 className="display-heading theme-text mt-3 text-3xl font-semibold sm:text-5xl">{title}</h1>
+                <p className="theme-muted mt-3 max-w-2xl text-[15px] leading-7">{description}</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">

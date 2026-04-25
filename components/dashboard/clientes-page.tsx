@@ -125,16 +125,16 @@ export function ClientesPage({ filter }: { filter: ClienteFiltro }) {
                 </Badge>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="theme-soft-surface min-w-[150px] rounded-[18px] border px-4 py-3">
+              <div className="grid w-full gap-3 sm:grid-cols-3 xl:w-auto">
+                <div className="theme-soft-surface min-w-0 rounded-[18px] border px-4 py-3">
                   <p className="theme-muted text-[11px] uppercase tracking-[0.18em]">Clientes</p>
                   <p className="theme-text mt-2 text-2xl font-semibold">{expectedCount}</p>
                 </div>
-                <div className="theme-soft-surface min-w-[150px] rounded-[18px] border px-4 py-3">
+                <div className="theme-soft-surface min-w-0 rounded-[18px] border px-4 py-3">
                   <p className="theme-muted text-[11px] uppercase tracking-[0.18em]">Gestores</p>
                   <p className="theme-text mt-2 text-2xl font-semibold">{gestores || "—"}</p>
                 </div>
-                <div className="theme-soft-surface min-w-[150px] rounded-[18px] border px-4 py-3">
+                <div className="theme-soft-surface min-w-0 rounded-[18px] border px-4 py-3">
                   <p className="theme-muted text-[11px] uppercase tracking-[0.18em]">LTV médio</p>
                   <p className="theme-text mt-2 text-2xl font-semibold">
                     {clients.length ? `${formatMonths(averageLtv)} meses` : "—"}
