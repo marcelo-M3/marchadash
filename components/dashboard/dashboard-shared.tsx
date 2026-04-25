@@ -19,7 +19,7 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-import { ArrowUpRight, CircleAlert } from "lucide-react";
+import { ArrowUpRight, ChevronDown, CircleAlert, LayoutGrid } from "lucide-react";
 import { ClientesDashboardData, EvolucaoMensal, GestorMetric, SaidasPorMes } from "@/lib/types";
 import { cn, formatPercent, getChurnColor } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -370,84 +370,103 @@ export function OrigemMixCard({
     );
   }
 
-  var total = data.reduce(function (acc, item) {
+  var formattedData =
+    data.length <= 4
+      ? data
+      : data.slice(0, 3).concat([
+          {
+            name: "Outras",
+            value: data.slice(3).reduce(function (acc, item) {
+              return acc + item.value;
+            }, 0),
+            percent: data.slice(3).reduce(function (acc, item) {
+              return acc + item.percent;
+            }, 0),
+            color: "var(--muted-color)"
+          }
+        ]);
+
+  var total = formattedData.reduce(function (acc, item) {
     return acc + item.value;
   }, 0);
-  var topSource = data[0];
+  var baseRadius = 118;
+  var ringGap = 23;
+  var trackColor = "rgba(89, 103, 140, 0.34)";
+  var startOffsetRatio = 0.22;
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
-      <div className="theme-soft-surface rounded-[24px] border p-5">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="theme-muted text-[11px] uppercase tracking-[0.2em]">Base ativa</p>
-              <p className="theme-text mt-2 text-5xl font-semibold tracking-[-0.05em]">{total}</p>
-              <p className="theme-muted mt-2 text-sm">clientes distribuídos por origem</p>
-            </div>
-            <div className="theme-surface rounded-[18px] border px-4 py-3 sm:min-w-[220px]">
-              <p className="theme-muted text-[11px] uppercase tracking-[0.18em]">Origem principal</p>
-              <div className="mt-3 flex items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3">
-                  <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: topSource.color }} />
-                  <div className="min-w-0">
-                    <p className="theme-text truncate text-sm font-semibold">{topSource.name}</p>
-                    <p className="theme-muted text-xs">{formatPercent(topSource.percent)} da base</p>
-                  </div>
-                </div>
-                <span className="theme-text text-2xl font-semibold">{topSource.value}</span>
-              </div>
-            </div>
-          </div>
+    <div className="theme-soft-surface rounded-[28px] border p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="theme-muted text-[11px] uppercase tracking-[0.2em]">Base ativa</p>
+          <p className="theme-text mt-2 text-sm">Distribuição dos clientes por empresa de origem.</p>
+        </div>
+        <div className="theme-surface inline-flex items-center gap-3 rounded-full border px-4 py-3">
+          <LayoutGrid className="h-4 w-4 text-primary" />
+          <span className="theme-text text-sm font-medium">Todas as origens</span>
+          <ChevronDown className="theme-muted h-4 w-4" />
+        </div>
+      </div>
 
-          <div className="theme-surface rounded-[22px] border p-4">
-            <p className="theme-muted text-[11px] uppercase tracking-[0.18em]">Distribuição proporcional</p>
-            <div className="mt-4 flex h-6 overflow-hidden rounded-full border theme-border bg-[var(--surface-soft)]">
-              {data.map((item) => (
-                <div
-                  key={item.name}
-                  title={`${item.name} · ${formatPercent(item.percent)}`}
-                  style={{ width: `${item.percent}%`, backgroundColor: item.color }}
-                />
-              ))}
-            </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              {data.map((item) => (
-                <div key={item.name} className="rounded-[18px] border theme-border bg-[var(--surface)] px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                    <p className="theme-text truncate text-sm font-semibold">{item.name}</p>
-                  </div>
-                  <p className="theme-text mt-4 text-2xl font-semibold tracking-[-0.04em]">{item.value}</p>
-                  <p className="theme-muted mt-1 text-xs">{formatPercent(item.percent)} da base ativa</p>
-                </div>
-              ))}
-            </div>
+      <div className="mt-6 flex justify-center">
+        <div className="relative h-[320px] w-[320px]">
+          <svg viewBox="0 0 320 320" className="h-full w-full">
+            <g transform="rotate(-210 160 160)">
+              {formattedData.map(function (item, index) {
+                var radius = baseRadius - index * ringGap;
+                var circumference = 2 * Math.PI * radius;
+                var ringLength = circumference * Math.min(Math.max(item.percent, 0), 100) / 100;
+                var dashOffset = circumference * startOffsetRatio;
+
+                return (
+                  <g key={item.name}>
+                    <circle
+                      cx="160"
+                      cy="160"
+                      r={radius}
+                      fill="none"
+                      stroke={trackColor}
+                      strokeWidth="16"
+                      strokeLinecap="round"
+                    />
+                    <circle
+                      cx="160"
+                      cy="160"
+                      r={radius}
+                      fill="none"
+                      stroke={item.color}
+                      strokeWidth="16"
+                      strokeLinecap="round"
+                      strokeDasharray={`${ringLength} ${circumference}`}
+                      strokeDashoffset={dashOffset}
+                    />
+                  </g>
+                );
+              })}
+            </g>
+          </svg>
+
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+            <p className="theme-text text-[clamp(2.5rem,5vw,4rem)] font-semibold tracking-[-0.06em]">
+              {total.toLocaleString("pt-BR")}
+            </p>
+            <p className="theme-muted mt-2 text-sm">clientes ativos</p>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-3">
-        {data.map((item) => (
-          <div key={item.name} className="theme-soft-surface rounded-[20px] border p-5">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <span className="mt-1 h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
-                <div>
-                  <p className="theme-text text-base font-semibold">{item.name}</p>
-                  <p className="theme-muted mt-1 text-sm">{formatPercent(item.percent)} da base ativa</p>
-                </div>
+      <div className={cn("mt-4 grid gap-4", formattedData.length >= 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3")}>
+        {formattedData.map((item) => (
+          <div key={item.name} className="min-w-0">
+            <p className="theme-text text-[clamp(1.8rem,3vw,2.8rem)] font-semibold tracking-[-0.05em]">
+              {item.value.toLocaleString("pt-BR")}
+            </p>
+            <div className="mt-2 flex items-start gap-2">
+              <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
+              <div className="min-w-0">
+                <p className="theme-text truncate text-sm font-medium">{item.name}</p>
+                <p className="theme-muted text-xs">{formatPercent(item.percent)} da base</p>
               </div>
-              <div className="text-right">
-                <p className="theme-text text-3xl font-semibold tracking-[-0.04em]">{item.value}</p>
-                <p className="theme-muted text-xs">clientes</p>
-              </div>
-            </div>
-            <div className="theme-border mt-4 h-2.5 overflow-hidden rounded-full border bg-[var(--surface)]">
-              <div
-                className="h-full rounded-full"
-                style={{ width: `${Math.max(item.percent, 4)}%`, backgroundColor: item.color }}
-              />
             </div>
           </div>
         ))}
