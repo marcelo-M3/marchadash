@@ -5,7 +5,6 @@ import {
   CartesianGrid,
   ComposedChart,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -16,9 +15,9 @@ import {
   CustomTooltip,
   EvolucaoTable,
   InsightChip,
+  OrigemMixCard,
   SummaryCard,
   getSimpleMonthlyInsight,
-  shortMonthLabel
 } from "@/components/dashboard/dashboard-shared";
 import { formatPercent } from "@/lib/utils";
 
@@ -31,10 +30,20 @@ export function MensalPage() {
       {(data) => {
         const closedMonths = data.evolucao_mensal.filter((item) => !item.parcial && item.churn !== null);
         const lastClosed = closedMonths[closedMonths.length - 1];
-        const saldoData = data.evolucao_mensal.map((item) => ({
-          mes: shortMonthLabel(item.mes),
-          saldo: (item.entradas ?? 0) - item.saidas
-        }));
+        const origemPalette = ["var(--primary-color)", "var(--success-color)", "var(--warning-color)", "var(--danger-color)"];
+        const origemCounts = (data.clientes_detalhados ?? []).reduce<Record<string, number>>((acc, cliente) => {
+          const origem = (cliente.origem ?? "Sem origem").trim() || "Sem origem";
+          acc[origem] = (acc[origem] ?? 0) + 1;
+          return acc;
+        }, {});
+        const origemData = Object.entries(origemCounts)
+          .map(([name, value], index) => ({
+            name,
+            value,
+            percent: data.clientes_ativos ? (value / data.clientes_ativos) * 100 : 0,
+            color: origemPalette[index % origemPalette.length]
+          }))
+          .sort((a, b) => b.value - a.value);
 
         return (
           <div className="space-y-8 pb-10">
@@ -102,25 +111,8 @@ export function MensalPage() {
                 </div>
               </SummaryCard>
 
-              <SummaryCard title="Saldo mensal" description="Mostra a diferença entre entradas e saídas em cada mês.">
-                <div className="h-[380px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={saldoData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                      <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                      <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Line
-                        type="monotone"
-                        dataKey="saldo"
-                        name="Saldo"
-                        stroke="var(--primary-color)"
-                        strokeWidth={3}
-                        dot={{ r: 3, fill: "var(--primary-color)" }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+              <SummaryCard title="Origem da carteira" description="Mostra de qual empresa veio cada cliente ativo da base atual.">
+                <OrigemMixCard data={origemData} />
               </SummaryCard>
             </div>
 
