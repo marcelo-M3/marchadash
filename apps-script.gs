@@ -1,7 +1,5 @@
 var SHEETS = {
-  BASE_CLIENTES: "BASE_CLIENTES",
-  MOVIMENTACAO_MENSAL: "MOVIMENTACAO_MENSAL",
-  SAIDAS: "SAIDAS"
+  BASE_CLIENTES: "BASE_CLIENTES"
 };
 
 function doGet() {
@@ -13,19 +11,17 @@ function doGet() {
 
 function buildDashboardPayload_() {
   var baseClientes = getSheetData_(SHEETS.BASE_CLIENTES);
-  var movimentacao = getSheetData_(SHEETS.MOVIMENTACAO_MENSAL);
-  var saidas = getSheetData_(SHEETS.SAIDAS);
   var hoje = new Date();
 
   var clientesAtivosValidos = baseClientes.filter(function (row) {
-    return normalizeText_(row["ATIVO"]) === "sim" && normalizeSaude_(row["Saúde cliente"]) !== "";
+    return normalizeText_(getAtivo_(row)) === "sim" && normalizeSaude_(getSaude_(row)) !== "";
   });
 
   var statusCounts = { bons: 0, alerta: 0, critico: 0 };
   var ltvValoresAtivos = [];
 
   clientesAtivosValidos.forEach(function (row) {
-    var saude = normalizeSaude_(row["Saúde cliente"]);
+    var saude = normalizeSaude_(getSaude_(row));
     if (saude === "bom") statusCounts.bons += 1;
     if (saude === "alerta") statusCounts.alerta += 1;
     if (saude === "critico") statusCounts.critico += 1;
@@ -34,7 +30,7 @@ function buildDashboardPayload_() {
     if (ltv !== null) ltvValoresAtivos.push(ltv);
   });
 
-  var evolucaoMensal = buildEvolucaoMensal_(movimentacao);
+  var evolucaoMensal = buildEvolucaoMensalFromBase_(baseClientes, hoje);
   var churnLookup = {};
   evolucaoMensal.forEach(function (item) {
     churnLookup[item.key] = {
@@ -89,7 +85,7 @@ function buildDashboardPayload_() {
         parcial: item.parcial
       };
     }),
-    saidas_por_mes: buildSaidasPorMes_(saidas, churnLookup, evolucaoMensal),
+    saidas_por_mes: buildSaidasPorMesFromBase_(baseClientes, churnLookup, evolucaoMensal),
     clientes_detalhados: buildClientesDetalhados_(clientesAtivosValidos, hoje)
   };
 }
@@ -98,8 +94,8 @@ function buildPorGestor_(rows, hoje) {
   var grouped = {};
 
   rows.forEach(function (row) {
-    var gestor = normalizeDisplayText_(row["GESTOR"]) || "Sem gestor";
-    var saude = normalizeSaude_(row["Saúde cliente"]);
+    var gestor = normalizeDisplayText_(getField_(row, ["GESTOR"])) || "Sem gestor";
+    var saude = normalizeSaude_(getSaude_(row));
 
     if (!grouped[gestor]) {
       grouped[gestor] = {
@@ -137,52 +133,94 @@ function buildPorGestor_(rows, hoje) {
     });
 }
 
-function buildEvolucaoMensal_(rows) {
-  var parsed = rows
+function buildEvolucaoMensalFromBase_(rows, hoje) {
+  var movimentos = rows
     .map(function (row) {
-      var mesNumero = monthNumber_(row["mes"]);
-      var ano = toNumber_(row["ano"]);
-      var baseInicio = toNumber_(row["base_inicio"]);
-      var entradas =
-        row["entradas_mes"] === "" || row["entradas_mes"] === null
-          ? null
-          : toNumber_(row["entradas_mes"]);
-      var saidas = toNumber_(row["saidas_mes"]);
-      var parcial = parseBoolean_(row["parcial"]);
-
       return {
-        ano: ano,
-        mesNumero: mesNumero,
-        mesNome: monthLabel_(mesNumero),
-        base_inicio: baseInicio,
-        entradas: entradas,
-        saidas: saidas,
-        parcial: parcial
+        entryDate: resolveEntryDate_(row),
+        exitDate: resolveExitDate_(row)
       };
     })
     .filter(function (item) {
-      return item.ano && item.mesNumero;
-    })
-    .sort(function (a, b) {
-      return a.ano === b.ano ? a.mesNumero - b.mesNumero : a.ano - b.ano;
+      return item.entryDate !== null;
     });
+
+  if (!movimentos.length) return [];
+
+  var startMonth = startOfMonth_(getMinDate_(movimentos.map(function (item) {
+    return item.entryDate;
+  })));
+
+  var latestKnownDate = getMaxDate_(
+    movimentos
+      .reduce(function (acc, item) {
+        acc.push(item.entryDate);
+        if (item.exitDate) acc.push(item.exitDate);
+        return acc;
+      }, [])
+      .concat([hoje])
+  );
+
+  var endMonth = startOfMonth_(latestKnownDate);
+  var cursor = new Date(startMonth.getTime());
+  var parsed = [];
+  var currentMonthKey = buildMonthKey_(hoje.getFullYear(), hoje.getMonth() + 1);
+
+  while (cursor.getTime() <= endMonth.getTime()) {
+    var monthStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+    var nextMonth = addMonths_(monthStart, 1);
+    var monthEnd = new Date(nextMonth.getTime() - 1);
+
+    var entradas = 0;
+    var saidas = 0;
+    var baseInicio = 0;
+
+    movimentos.forEach(function (item) {
+      if (item.entryDate && item.entryDate >= monthStart && item.entryDate < nextMonth) {
+        entradas += 1;
+      }
+
+      if (item.exitDate && item.exitDate >= monthStart && item.exitDate < nextMonth) {
+        saidas += 1;
+      }
+
+      var entrouAntesDoMes = item.entryDate < monthStart;
+      var naoSaiuAntesDoMes = !item.exitDate || item.exitDate >= monthStart;
+      if (entrouAntesDoMes && naoSaiuAntesDoMes) {
+        baseInicio += 1;
+      }
+    });
+
+    var key = buildMonthKey_(monthStart.getFullYear(), monthStart.getMonth() + 1);
+    var parcial = key === currentMonthKey;
+
+    parsed.push({
+      ano: monthStart.getFullYear(),
+      mesNumero: monthStart.getMonth() + 1,
+      mesNome: monthLabel_(monthStart.getMonth() + 1),
+      key: key,
+      label: "",
+      base_inicio: baseInicio,
+      entradas: entradas,
+      saidas: saidas,
+      churn: parcial || !baseInicio ? null : round_((saidas / baseInicio) * 100, 2),
+      parcial: parcial,
+      date: monthStart,
+      monthEnd: monthEnd
+    });
+
+    cursor = nextMonth;
+  }
 
   var includeYear = hasMultipleYears_(parsed);
 
   return parsed.map(function (item) {
-    return {
-      key: buildMonthKey_(item.ano, item.mesNumero),
-      label: includeYear ? item.mesNome + "/" + item.ano : item.mesNome,
-      base_inicio: item.base_inicio,
-      entradas: item.entradas,
-      saidas: item.saidas,
-      churn: item.parcial || !item.base_inicio ? null : round_((item.saidas / item.base_inicio) * 100, 2),
-      parcial: item.parcial
-    };
+    item.label = includeYear ? item.mesNome + "/" + item.ano : item.mesNome;
+    return item;
   });
 }
 
-function buildSaidasPorMes_(rows, churnLookup, evolucaoMensal) {
+function buildSaidasPorMesFromBase_(rows, churnLookup, evolucaoMensal) {
   var includeYear = hasMultipleYears_(
     evolucaoMensal.map(function (item) {
       var parts = item.key.split("-");
@@ -193,16 +231,16 @@ function buildSaidasPorMes_(rows, churnLookup, evolucaoMensal) {
   var grouped = {};
 
   rows.forEach(function (row) {
-    var nomeCliente = normalizeDisplayText_(row["nome_cliente"]);
+    var nomeCliente = normalizeDisplayText_(getField_(row, ["CLIENTES"]));
     if (!nomeCliente) return;
 
-    var dataSaida = parseDate_(row["data_saida"]);
-    var mesNumero = dataSaida ? dataSaida.getMonth() + 1 : monthNumber_(row["mes_saida"]);
-    var ano = dataSaida ? dataSaida.getFullYear() : toNumber_(row["ano_saida"]);
+    var exitDate = resolveExitDate_(row);
+    if (!exitDate) return;
 
-    if (!mesNumero || !ano) return;
-
+    var mesNumero = exitDate.getMonth() + 1;
+    var ano = exitDate.getFullYear();
     var key = buildMonthKey_(ano, mesNumero);
+
     if (!grouped[key]) {
       grouped[key] = {
         ano: ano,
@@ -225,7 +263,7 @@ function buildSaidasPorMes_(rows, churnLookup, evolucaoMensal) {
         mes: includeYear ? item.mesNome + "/" + item.ano : item.mesNome,
         churn: item.churn,
         parcial: item.parcial,
-        clientes: item.clientes
+        clientes: item.clientes.sort()
       };
     })
     .sort(function (a, b) {
@@ -244,18 +282,18 @@ function buildSaidasPorMes_(rows, churnLookup, evolucaoMensal) {
 function buildClientesDetalhados_(rows, hoje) {
   return rows
     .map(function (row) {
-      var status = normalizeSaude_(row["Saúde cliente"]);
-      var nome = normalizeDisplayText_(row["CLIENTES"]);
+      var status = normalizeSaude_(getSaude_(row));
+      var nome = normalizeDisplayText_(getField_(row, ["CLIENTES"]));
 
       if (!nome || !status) return null;
 
       return {
         nome: nome,
-        gestor: normalizeDisplayText_(row["GESTOR"]) || "Sem gestor",
-        origem: normalizeDisplayText_(row["ORIGEM"]) || null,
+        gestor: normalizeDisplayText_(getField_(row, ["GESTOR"])) || "Sem gestor",
+        origem: normalizeDisplayText_(getField_(row, ["ORIGEM"])) || null,
         status: status,
         status_label: statusLabel_(status),
-        data_inicio: formatDateForPayload_(parseDate_(row["DATA PLANEJAMENTO"])),
+        data_inicio: formatDateForPayload_(parseDate_(getField_(row, ["DATA PLANEJAMENTO"]))),
         ltv_meses: resolveLtvMeses_(row, hoje)
       };
     })
@@ -270,7 +308,7 @@ function buildClientesDetalhados_(rows, hoje) {
 }
 
 function resolveLtvMeses_(row, hoje) {
-  var periodo = row["PERÍODO"];
+  var periodo = getField_(row, ["PERÍODO"]);
   if (periodo !== "" && periodo !== null && periodo !== undefined) {
     var periodoNumero = Number(periodo);
     if (!isNaN(periodoNumero) && periodoNumero > 0) {
@@ -278,11 +316,23 @@ function resolveLtvMeses_(row, hoje) {
     }
   }
 
-  var inicio = parseDate_(row["DATA PLANEJAMENTO"]);
+  var inicio = parseDate_(getField_(row, ["DATA PLANEJAMENTO"]));
   if (!inicio) return null;
 
-  var fim = parseDate_(row["SAÍDA CLIENTE"]) || hoje;
+  var fim = parseDate_(getField_(row, ["SAÍDA CLIENTE"])) || hoje;
   return diffInMonths_(inicio, fim);
+}
+
+function resolveEntryDate_(row) {
+  var monthDate = parseMonthYear_(getField_(row, ["M/A ENTRADA"]));
+  if (monthDate) return monthDate;
+  return parseDate_(getField_(row, ["DATA PLANEJAMENTO"]));
+}
+
+function resolveExitDate_(row) {
+  var monthDate = parseMonthYear_(getField_(row, ["M/A SAÍDA"]));
+  if (monthDate) return monthDate;
+  return parseDate_(getField_(row, ["SAÍDA CLIENTE"]));
 }
 
 function getSheetData_(sheetName) {
@@ -311,6 +361,24 @@ function getSheetData_(sheetName) {
     acc.push(item);
     return acc;
   }, []);
+}
+
+function getField_(row, possibleKeys) {
+  for (var i = 0; i < possibleKeys.length; i += 1) {
+    var key = possibleKeys[i];
+    if (Object.prototype.hasOwnProperty.call(row, key)) {
+      return row[key];
+    }
+  }
+  return "";
+}
+
+function getSaude_(row) {
+  return getField_(row, ["STATUS CLIENTE", "Saúde cliente"]);
+}
+
+function getAtivo_(row) {
+  return getField_(row, ["ATIVO"]);
 }
 
 function normalizeSaude_(value) {
@@ -356,14 +424,24 @@ function parseDate_(value) {
   return isNaN(parsed.getTime()) ? null : parsed;
 }
 
+function parseMonthYear_(value) {
+  if (!value) return null;
+
+  var text = String(value).trim();
+  var match = text.match(/^(\d{1,2})\/(\d{2,4})$/);
+  if (!match) return null;
+
+  var month = Number(match[1]);
+  var year = Number(match[2]);
+  if (!month || month < 1 || month > 12) return null;
+  if (year < 100) year += 2000;
+
+  return new Date(year, month - 1, 1);
+}
+
 function formatDateForPayload_(date) {
   if (!date) return null;
   return Utilities.formatDate(date, Session.getScriptTimeZone(), "dd/MM/yyyy");
-}
-
-function parseBoolean_(value) {
-  var normalized = normalizeText_(value);
-  return normalized === "true" || normalized === "sim" || normalized === "1" || normalized === "yes";
 }
 
 function diffInMonths_(startDate, endDate) {
@@ -399,41 +477,9 @@ function percent_(value, total) {
   return round_((value / total) * 100, 1);
 }
 
-function toNumber_(value) {
-  var n = Number(value);
-  return isNaN(n) ? 0 : n;
-}
-
 function round_(value, decimals) {
   var factor = Math.pow(10, decimals);
   return Math.round(value * factor) / factor;
-}
-
-function monthNumber_(value) {
-  if (typeof value === "number") return value;
-
-  var normalized = normalizeText_(value);
-  var months = {
-    janeiro: 1,
-    fevereiro: 2,
-    marco: 3,
-    abril: 4,
-    maio: 5,
-    junho: 6,
-    julho: 7,
-    agosto: 8,
-    setembro: 9,
-    outubro: 10,
-    novembro: 11,
-    dezembro: 12
-  };
-
-  if (months[normalized]) return months[normalized];
-
-  var mmYY = normalized.match(/^(\d{2})\/(\d{2,4})$/);
-  if (mmYY) return Number(mmYY[1]);
-
-  return 0;
 }
 
 function monthLabel_(monthNumber) {
@@ -465,4 +511,24 @@ function hasMultipleYears_(rows) {
     if (row.ano) set[row.ano] = true;
   });
   return Object.keys(set).length > 1;
+}
+
+function startOfMonth_(date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addMonths_(date, amount) {
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+}
+
+function getMinDate_(dates) {
+  return dates.reduce(function (current, date) {
+    return date.getTime() < current.getTime() ? date : current;
+  });
+}
+
+function getMaxDate_(dates) {
+  return dates.reduce(function (current, date) {
+    return date.getTime() > current.getTime() ? date : current;
+  });
 }

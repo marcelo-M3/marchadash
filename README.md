@@ -21,40 +21,25 @@ Dashboard interno em `Next.js 14` para acompanhar saúde da carteira, LTV, churn
 
 ## 1. Configurar o Google Sheets
 
-Crie uma planilha com estas abas e cabeçalhos exatos na primeira linha:
+Crie uma planilha com a aba `BASE_CLIENTES` e estes cabeçalhos exatos na primeira linha:
 
 ### Aba `BASE_CLIENTES`
 
-| Atualização | CLIENTES | ATIVO | ORIGEM | GESTOR | DATA PLANEJAMENTO | PERÍODO | SAÍDA CLIENTE | Observação | M/A ENTRADA | M/A SAÍDA | Data de recontato | Saúde cliente |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Atualização | CLIENTES | NICHO | ATIVO | ORIGEM | GESTOR | DATA PLANEJAMENTO | PERÍODO | Observação | M/A ENTRADA | M/A SAÍDA | SAÍDA CLIENTE | MOTIVO SAÍDA | DATA RECONTATO | STATUS CLIENTE |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 Regras:
 
 - `ATIVO`: use `Sim`, `Saiu`, `Encerrou contrato`, `Aviso prévio` ou `Pausado`
 - `PERÍODO`: preferencialmente número inteiro em meses
-- `Saúde cliente`: use `Bom`, `Precisa de Atenção` ou `Situação Crítica`
-- o dashboard considera como base ativa válida os clientes com `ATIVO = Sim` e `Saúde cliente` preenchida
+- `STATUS CLIENTE`: use `Bom`, `Precisa de Atenção` ou `Situação Crítica`
+- `M/A ENTRADA` e `M/A SAÍDA`: use `mm/aa`
+- o dashboard considera como base ativa válida os clientes com `ATIVO = Sim` e `STATUS CLIENTE` preenchido
 
-### Aba `MOVIMENTACAO_MENSAL`
+Observação:
 
-| mes | ano | base_inicio | entradas_mes | saidas_mes | parcial |
-|---|---|---|---|---|---|
-
-Regras:
-
-- `mes`: pode ser número do mês ou nome em português
-- `parcial`: use `TRUE/FALSE`, `sim/não`, `1/0`
-- `entradas_mes`: pode ficar vazio em mês parcial
-
-### Aba `SAIDAS`
-
-| nome_cliente | gestor | data_saida | mes_saida | ano_saida |
-|---|---|---|---|---|
-
-Regras:
-
-- pode haver registros com `data_saida` vazia, desde que `mes_saida` e `ano_saida` existam
-- `mes_saida` deve usar o nome do mês por extenso
+- a API atual deriva `evolucao_mensal` e `saidas_por_mes` diretamente da `BASE_CLIENTES`
+- `MOVIMENTACAO_MENSAL` e `SAIDAS` não são mais obrigatórias para o backend
 
 ## 2. Publicar a API com Apps Script
 
@@ -147,4 +132,4 @@ O fluxo pedido fica assim:
 - Em caso de erro, exibe estado com botão de retry.
 - O botão `Atualizar` faz refetch em tempo real.
 - Os nomes de clientes, gestores e meses exibidos vêm da API, que por sua vez lê a planilha.
-- O arquivo [apps-script.gs](/Users/clarasanches/Documents/dash/apps-script.gs) já está ajustado para `BASE_CLIENTES`, `MOVIMENTACAO_MENSAL` e `SAIDAS`.
+- O arquivo [apps-script.gs](/Users/clarasanches/Documents/dash/apps-script.gs) já está ajustado para ler apenas `BASE_CLIENTES` e derivar os dados mensais no próprio Apps Script.
