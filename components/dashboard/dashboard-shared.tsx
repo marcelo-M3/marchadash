@@ -135,7 +135,7 @@ export function CustomTooltip({
   label
 }: {
   active?: boolean;
-  payload?: Array<{ name: string; value: number; color?: string; payload?: { tooltipLabel?: string } }>;
+  payload?: Array<{ name: string; value: number; color?: string; fill?: string; payload?: { tooltipLabel?: string; color?: string } }>;
   label?: string;
 }) {
   if (!active || !payload?.length) return null;
@@ -150,7 +150,7 @@ export function CustomTooltip({
             <span className="theme-muted flex items-center gap-2">
               <span
                 className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: item.color ?? "#93c5fd" }}
+                style={{ backgroundColor: item.color ?? item.fill ?? item.payload?.color ?? "#93c5fd" }}
               />
               {item.name}
             </span>
@@ -321,7 +321,7 @@ export function HealthDonut({
   const total = data.reduce((acc, item) => acc + item.value, 0);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[220px_1fr] lg:items-center">
+    <div className="flex flex-col items-center gap-5">
       <div className="relative mx-auto h-[220px] w-[220px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -347,22 +347,11 @@ export function HealthDonut({
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-center gap-4">
         {data.map((item) => (
-          <div key={item.name} className="theme-surface rounded-[18px] border px-4 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
-                <span className="theme-text truncate text-base font-semibold">{item.name}</span>
-              </div>
-              <span className="theme-text text-2xl font-semibold tracking-[-0.04em]">{item.value}</span>
-            </div>
-            <div className="theme-border mt-4 h-2 overflow-hidden rounded-full border bg-[var(--surface-soft)]">
-              <div
-                className="h-full rounded-full"
-                style={{ width: `${total ? (item.value / total) * 100 : 0}%`, backgroundColor: item.color }}
-              />
-            </div>
+          <div key={item.name} className="flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
+            <span className="theme-muted text-sm font-medium">{item.name}</span>
           </div>
         ))}
       </div>
@@ -399,7 +388,12 @@ export function OrigemMixCard({
           }
         ]);
 
-  var ringPalette = ["#1A68FF", "#64A7FE", "#C9CFE5", "#A8B2D2"];
+  var ringPalette = [
+    "var(--origin-ring-1)",
+    "var(--origin-ring-2)",
+    "var(--origin-ring-3)",
+    "var(--origin-ring-4)"
+  ];
   formattedData = formattedData.map(function (item, index) {
     return {
       name: item.name,
@@ -414,7 +408,7 @@ export function OrigemMixCard({
   }, 0);
   var baseRadius = 118;
   var ringGap = 24;
-  var trackColor = "#26304A";
+  var trackColor = "var(--origin-track)";
   var startOffsetRatio = 0.18;
 
   return (
