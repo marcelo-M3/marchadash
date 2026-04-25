@@ -125,11 +125,11 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
   return (
     <div className="space-y-8 pb-10">
       <div className="grid gap-3 md:grid-cols-3">
-        <InsightChip label="Churn médio" value={formatPercent(averageChurn)} tone="yellow" icon={BarChart3} />
+        <InsightChip label="Churn médio" value={formatPercent(averageChurn)} tone="red" icon={BarChart3} />
         <InsightChip
           label="Último mês fechado"
           value={lastClosed ? `${lastClosed.mes} · ${formatPercent(lastClosed.churn)}` : "—"}
-          tone="blue"
+          tone="green"
           icon={CalendarRange}
         />
         <InsightChip

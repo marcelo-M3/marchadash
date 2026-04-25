@@ -30,14 +30,14 @@ export function GestoresPage() {
               <InsightChip
                 label="Melhor taxa de sucesso"
                 value={topGestor ? `${topGestor.nome} · ${formatPercent(topGestor.taxa_sucesso)}` : "—"}
-                tone="green"
+                tone="yellow"
                 icon={Trophy}
               />
               <InsightChip label="Média da equipe" value={formatPercent(avgSuccess)} tone="blue" icon={BarChart3} />
-              <InsightChip label="Gestores ativos" value={String(gestores.length)} tone="blue" icon={Users} />
+              <InsightChip label="Gestores ativos" value={String(gestores.length)} tone="green" icon={Users} />
             </div>
 
-            <div className="grid gap-4 2xl:grid-cols-2">
+            <div className="grid gap-4 lg:grid-cols-2">
               <GestorStatusCard gestores={gestores} />
               <GestorPerformanceChart gestores={gestores} />
             </div>
