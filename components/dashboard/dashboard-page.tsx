@@ -2,29 +2,16 @@
 
 import type { Route } from "next";
 import { AlertTriangle, ShieldAlert, ShieldCheck, Users } from "lucide-react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis
-} from "recharts";
 import { DashboardDataPage } from "@/components/dashboard/dashboard-shell";
 import {
-  CustomTooltip,
   HealthDonut,
   InsightChip,
   MetricCard,
+  OrigemMixCard,
   SummaryCard,
-  shortMonthLabel,
   statusColors
 } from "@/components/dashboard/dashboard-shared";
-import { formatMonths, formatPercent, formatSignedPercent, getChurnColor } from "@/lib/utils";
+import { formatMonths, formatPercent, formatSignedPercent } from "@/lib/utils";
 
 export function DashboardPage() {
   return (
@@ -38,13 +25,20 @@ export function DashboardPage() {
           { name: "Alerta", value: data.clientes_alerta, color: statusColors.alerta },
           { name: "Crítico", value: data.clientes_critico, color: statusColors.critico }
         ];
-
-        const momentumData = data.evolucao_mensal.map((item) => ({
-          mes: shortMonthLabel(item.mes),
-          churn: item.churn ?? 0,
-          base: item.base_inicio,
-          saldo: (item.entradas ?? 0) - item.saidas
-        }));
+        const origemPalette = ["var(--primary-color)", "var(--success-color)", "var(--warning-color)", "var(--danger-color)"];
+        const origemCounts = (data.clientes_detalhados ?? []).reduce<Record<string, number>>((acc, cliente) => {
+          const origem = (cliente.origem ?? "Sem origem").trim() || "Sem origem";
+          acc[origem] = (acc[origem] ?? 0) + 1;
+          return acc;
+        }, {});
+        const origemData = Object.entries(origemCounts)
+          .map(([name, value], index) => ({
+            name,
+            value,
+            percent: data.clientes_ativos ? (value / data.clientes_ativos) * 100 : 0,
+            color: origemPalette[index % origemPalette.length]
+          }))
+          .sort((a, b) => b.value - a.value);
 
         return (
           <div className="space-y-8 pb-10">
@@ -111,7 +105,7 @@ export function DashboardPage() {
               />
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-3">
+            <div className="grid gap-4 xl:grid-cols-2">
               <SummaryCard title="LTV médio e mediana" description="Tempo médio e ponto central de permanência da carteira.">
                 <div className="flex items-end gap-3">
                   <div className="metric-number font-bold text-primary">{formatMonths(data.ltv_medio)}</div>
@@ -123,52 +117,8 @@ export function DashboardPage() {
                 </div>
               </SummaryCard>
 
-              <SummaryCard title="Base e churn" description="Mostra a base e o churn ao longo dos meses.">
-                <div className="h-[220px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={momentumData} margin={{ top: 0, right: 0, left: -16, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="overviewBase" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="var(--primary-color)" stopOpacity={0.34} />
-                          <stop offset="100%" stopColor="var(--primary-color)" stopOpacity={0.02} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                      <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Area type="monotone" dataKey="base" stroke="var(--primary-color)" strokeWidth={2.5} fill="url(#overviewBase)" name="Base" />
-                      <Line type="monotone" dataKey="churn" stroke="var(--danger-color)" strokeWidth={2.5} dot={false} name="Churn %" />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </div>
-              </SummaryCard>
-
-              <SummaryCard title="Saldo mensal" description="Mostra a diferença entre entradas e saídas de cada mês.">
-                <div className="h-[170px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={momentumData} margin={{ top: 0, right: 0, left: -16, bottom: 0 }}>
-                      <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                      <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Line
-                        type="monotone"
-                        dataKey="saldo"
-                        stroke="var(--primary-color)"
-                        strokeWidth={2.5}
-                        dot={{ r: 3, fill: "var(--primary-color)" }}
-                        name="Saldo"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="theme-soft-surface mt-4 rounded-[18px] border p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="theme-muted text-sm">Churn médio</span>
-                    <span className={getChurnColor(data.churn_medio)}>{formatPercent(data.churn_medio)}</span>
-                  </div>
-                </div>
+              <SummaryCard title="Origem da carteira" description="Mostra de qual empresa veio cada cliente ativo da base atual.">
+                <OrigemMixCard data={origemData} />
               </SummaryCard>
             </div>
           </div>

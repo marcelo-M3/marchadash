@@ -320,6 +320,70 @@ export function HealthDonut({
   );
 }
 
+export function OrigemMixCard({
+  data
+}: {
+  data: Array<{ name: string; value: number; percent: number; color: string }>;
+}) {
+  if (!data.length) {
+    return (
+      <div className="theme-soft-surface rounded-[20px] border p-5">
+        <p className="theme-muted text-sm">Nenhuma origem disponível para a base atual.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+      <div className="h-[220px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart layout="vertical" data={data} margin={{ top: 0, right: 0, left: 8, bottom: 0 }}>
+            <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+            <XAxis type="number" hide />
+            <YAxis
+              dataKey="name"
+              type="category"
+              width={116}
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "var(--muted-color)", fontSize: 12 }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar dataKey="value" name="Clientes" radius={[999, 999, 999, 999]} barSize={18}>
+              {data.map((item) => (
+                <Cell key={item.name} fill={item.color} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="space-y-3">
+        {data.map((item) => (
+          <div key={item.name} className="theme-soft-surface rounded-[18px] border p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                <div>
+                  <p className="theme-text text-sm font-semibold">{item.name}</p>
+                  <p className="theme-muted text-xs">{formatPercent(item.percent)} da base</p>
+                </div>
+              </div>
+              <span className="theme-text text-lg font-semibold">{item.value}</span>
+            </div>
+            <div className="theme-border mt-4 h-2 overflow-hidden rounded-full border bg-[var(--surface)]">
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${Math.max(item.percent, 4)}%`, backgroundColor: item.color }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function GestorStatusCard({ gestores }: { gestores: GestorMetric[] }) {
   const chartData = gestores.map((gestor) => ({
     nome: gestor.nome,
