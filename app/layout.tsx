@@ -13,7 +13,7 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning data-theme="dark">
       <body>
         <script
           dangerouslySetInnerHTML={{
@@ -21,8 +21,7 @@ export default function RootLayout({
               (function() {
                 try {
                   var saved = localStorage.getItem("marcha-theme");
-                  var preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-                  var theme = saved === "light" || saved === "dark" ? saved : preferred;
+                  var theme = saved === "light" || saved === "dark" ? saved : "dark";
                   document.documentElement.setAttribute("data-theme", theme);
                 } catch (e) {
                   document.documentElement.setAttribute("data-theme", "dark");

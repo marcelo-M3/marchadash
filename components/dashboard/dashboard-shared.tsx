@@ -655,8 +655,12 @@ export function SuccessGaugeCard({
           <p className="mt-2 text-sm italic text-[var(--muted-color)]">{statusNote}</p>
         </div>
 
-        <div className="theme-muted absolute bottom-[96px] left-7 text-xs font-medium">0%</div>
-        <div className="theme-muted absolute bottom-[96px] right-7 text-xs font-medium">100%</div>
+        <div className="theme-soft-surface theme-muted absolute bottom-[100px] left-2 rounded-full border px-2.5 py-1 text-xs font-medium">
+          0%
+        </div>
+        <div className="theme-soft-surface theme-muted absolute bottom-[100px] right-2 rounded-full border px-2.5 py-1 text-xs font-medium">
+          100%
+        </div>
       </div>
 
       <div className="mt-4 grid w-full grid-cols-3 gap-2 text-center">
