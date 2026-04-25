@@ -14,15 +14,16 @@ import {
 } from "recharts";
 import { DashboardDataPage } from "@/components/dashboard/dashboard-shell";
 import {
+  ChurnByDimensionChart,
   CustomTooltip,
   EvolucaoTable,
+  HealthByOriginChart,
   InsightChip,
-  OrigemMixCard,
   SummaryCard,
   getSimpleMonthlyInsight,
   shortMonthLabel,
 } from "@/components/dashboard/dashboard-shared";
-import { ClientesDashboardData, EvolucaoMensal } from "@/lib/types";
+import { BaseClienteDetalhado, ClientesDashboardData, EvolucaoMensal } from "@/lib/types";
 import { formatPercent } from "@/lib/utils";
 
 function parseEvolutionMonth(label: string) {
@@ -39,11 +40,43 @@ type MonthlyRow = EvolucaoMensal & {
   tooltipLabel: string;
 };
 
+function parseMonthYear(value: string | null) {
+  if (!value) return null;
+  const match = value.match(/^(\d{2})\/(\d{2,4})$/);
+  if (!match) return null;
+  const month = Number(match[1]);
+  const rawYear = Number(match[2]);
+  if (!month || month < 1 || month > 12) return null;
+  const year = rawYear < 100 ? rawYear + 2000 : rawYear;
+  return new Date(year, month - 1, 1);
+}
+
+function parseDatePt(value: string | null) {
+  if (!value) return null;
+  const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) return null;
+  return new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+}
+
+function resolveEntryDate(record: BaseClienteDetalhado) {
+  return parseMonthYear(record.ma_entrada) || parseDatePt(record.data_inicio);
+}
+
+function buildMonthKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function fullMonthLabel(date: Date) {
+  return `${monthNames[date.getMonth()]}/${date.getFullYear()}`;
+}
+
+const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
 export function MensalPage() {
   return (
     <DashboardDataPage
       title="Evolução mensal"
-      description="Acompanhe a base, o churn e a variação mensal da carteira."
+      description="Acompanhe a entrada de clientes, a composição por origem e nicho e a evolução da base ao longo do tempo."
     >
       {(data) => <MensalContent data={data} />}
     </DashboardDataPage>
@@ -106,43 +139,95 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
   }));
   const closedMonths = monthRows.filter((item) => !item.parcial && item.churn !== null);
   const lastClosed = closedMonths[closedMonths.length - 1];
-  const averageChurn =
-    closedMonths.reduce((acc: number, item) => acc + (item.churn ?? 0), 0) / Math.max(closedMonths.length, 1);
-  const origemPalette = ["var(--primary-color)", "#64a7fe", "#c9cfe5", "#a8b2d2"];
-  const origemSource = data.base_clientes_detalhada?.filter((cliente) => cliente.ativo === "Sim") ?? data.clientes_detalhados ?? [];
-  const origemCounts = origemSource.reduce<Record<string, number>>(
-    (acc, cliente) => {
-      const origem = (cliente.origem ?? "Sem origem").trim() || "Sem origem";
-      acc[origem] = (acc[origem] ?? 0) + 1;
+  const averageEntries =
+    monthRows.reduce((acc: number, item) => acc + (item.entradas ?? 0), 0) / Math.max(monthRows.length, 1);
+  const latestEntries = lastClosed?.entradas ?? monthRows.at(-1)?.entradas ?? null;
+  const baseClientes = data.base_clientes_detalhada ?? [];
+  const activeWithStatus = baseClientes.filter((cliente) => cliente.ativo === "Sim" && cliente.status !== "sem_status");
+  const healthByNicho = Array.from(
+    activeWithStatus.reduce<Map<string, { nicho: string; bom: number; alerta: number; critico: number }>>((acc, record) => {
+      const nicho = record.nicho || "Sem nicho";
+      if (!acc.has(nicho)) {
+        acc.set(nicho, { nicho, bom: 0, alerta: 0, critico: 0 });
+      }
+      const item = acc.get(nicho)!;
+      if (record.status === "bom") item.bom += 1;
+      if (record.status === "alerta") item.alerta += 1;
+      if (record.status === "critico") item.critico += 1;
       return acc;
-    },
-    {}
-  );
-  const origemData = Object.entries(origemCounts)
-    .map(([name, value], index) => ({
-      name,
-      value,
-      percent: data.clientes_ativos ? (value / data.clientes_ativos) * 100 : 0,
-      color: origemPalette[index % origemPalette.length]
-    }))
-    .sort((a, b) => b.value - a.value);
+    }, new Map())
+  )
+    .map(([, value]) => value)
+    .sort((a, b) => b.bom + b.alerta + b.critico - (a.bom + a.alerta + a.critico));
+  const entriesByOrigin = useMemo(() => {
+    const records = baseClientes
+      .map((record) => ({
+        ...record,
+        entry: resolveEntryDate(record)
+      }))
+      .filter((record) => record.entry && record.origem);
+
+    const topOrigins = Array.from(
+      records.reduce((acc, record) => {
+        const key = record.origem || "Sem origem";
+        acc.set(key, (acc.get(key) ?? 0) + 1);
+        return acc;
+      }, new Map<string, number>())
+    )
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([name]) => name);
+
+    const months = Array.from(new Set(records.map((record) => buildMonthKey(record.entry!))))
+      .sort()
+      .filter((key) => key.startsWith(`${selectedChartYear || years[0]}`));
+
+    return months.map((key) => {
+      const year = Number(key.slice(0, 4));
+      const month = Number(key.slice(5, 7));
+      const date = new Date(year, month - 1, 1);
+      const row: Record<string, any> = {
+        mes: monthNames[date.getMonth()],
+        tooltipLabel: fullMonthLabel(date)
+      };
+
+      topOrigins.forEach((origin) => {
+        row[origin] = records.filter(
+          (record) => buildMonthKey(record.entry!) === key && (record.origem || "Sem origem") === origin
+        ).length;
+      });
+
+      return row;
+    });
+  }, [baseClientes, selectedChartYear, years]);
+
+  const originPeak = useMemo(() => {
+    const totals = new Map<string, number>();
+    entriesByOrigin.forEach((row) => {
+      Object.entries(row).forEach(([key, value]) => {
+        if (key === "mes" || key === "tooltipLabel") return;
+        totals.set(key, (totals.get(key) ?? 0) + Number(value));
+      });
+    });
+    return Array.from(totals.entries()).sort((a, b) => b[1] - a[1])[0] ?? null;
+  }, [entriesByOrigin]);
 
   return (
     <div className="space-y-8 pb-10">
       <div className="grid gap-3 md:grid-cols-3">
         <InsightChip
-          label="Churn médio"
-          value={formatPercent(averageChurn)}
-          tone="red"
+          label="Entradas médias"
+          value={String(Math.round(averageEntries))}
+          tone="blue"
           icon={BarChart3}
-          tooltip="Média do churn dos meses fechados. Cálculo mensal: saídas do mês / base de início do mês."
+          tooltip="Média simples de entradas mensais da série disponível em evolução_mensal."
         />
         <InsightChip
           label="Último mês fechado"
-          value={lastClosed ? `${lastClosed.mes} · ${formatPercent(lastClosed.churn)}` : "—"}
+          value={lastClosed ? `${lastClosed.mes} · ${latestEntries ?? "—"} entradas` : "—"}
           tone="green"
           icon={CalendarRange}
-          tooltip="Mostra o último mês da série que não está marcado como parcial, com o churn daquele período."
+          tooltip="Mostra o último mês fechado da série e o volume de entradas registrado naquele período."
         />
         <InsightChip
           label="Base atual"
@@ -220,10 +305,27 @@ function MensalContent({ data }: { data: ClientesDashboardData }) {
           </div>
         </SummaryCard>
 
-        <SummaryCard title="Origem dos Clientes" description="Mostra de qual empresa veio cada cliente ativo da base atual.">
-          <OrigemMixCard data={origemData} />
+        <SummaryCard title="Entrada de clientes por origem" description="Mostra, mês a mês, quais canais de origem trouxeram mais clientes para dentro da empresa.">
+          <div className="space-y-4">
+            <ChurnByDimensionChart data={entriesByOrigin} palette={["#1a68ff", "#4b8dff", "#7ab0ff", "#c9cfe5"]} />
+            <div className="theme-strong-surface rounded-[18px] border p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-primary">Leitura rápida</p>
+              <p className="theme-text mt-2 text-sm leading-6">
+                {originPeak
+                  ? `${originPeak[0]} lidera as entradas do período exibido com ${originPeak[1]} clientes trazidos para a base.`
+                  : "Ainda não há entradas suficientes para identificar a origem dominante do período."}
+              </p>
+            </div>
+          </div>
         </SummaryCard>
       </div>
+
+      <SummaryCard
+        title="Status dos clientes ativos por nicho"
+        description="Análise da qualidade dos clientes ativos por nicho, separando quem está bem, em alerta e em situação crítica."
+      >
+        <HealthByOriginChart data={healthByNicho} labelKey="nicho" />
+      </SummaryCard>
 
       <SummaryCard
         title="Filtro da evolução"

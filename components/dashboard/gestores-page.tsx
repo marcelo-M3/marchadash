@@ -16,7 +16,7 @@ import { formatMonths, formatPercent } from "@/lib/utils";
 export function GestoresPage() {
   return (
     <DashboardDataPage
-      title="Por gestor"
+      title="Análise Gestores"
       description="Compare saúde da carteira, taxa de sucesso e retenção por gestor."
     >
       {(data) => {
@@ -62,7 +62,12 @@ export function GestoresPage() {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <GestorStatusCard gestores={gestoresComDados} />
-              <GestorPerformanceChart gestores={gestoresComDados} />
+              <SummaryCard
+                title="Mapa de performance"
+                description="Análise com base nos clientes ativos, taxa de sucesso e LTV médio/mês."
+              >
+                <GestorPerformanceChart gestores={gestoresComDados} />
+              </SummaryCard>
             </div>
 
             <Card className="p-6">
@@ -70,16 +75,16 @@ export function GestoresPage() {
                 <div>
                   <CardTitle>Ranking por gestor</CardTitle>
                   <p className="theme-muted mt-1 text-sm">
-                    Ranking com taxa de sucesso e LTV médio por mês de cada carteira.
+                    Ranking do cálculo entre quantidade de clientes, taxa de sucesso e LTV médio/mês de cada gestor.
                   </p>
                 </div>
                 <div className="theme-soft-surface theme-muted inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs uppercase tracking-[0.18em]">
                   <Activity className="h-3.5 w-3.5 text-primary" />
-                  {gestores.length} gestores
+                  {gestoresComDados.length} gestores
                 </div>
               </CardHeader>
               <CardContent className="mt-5 space-y-4">
-                {gestores.map((gestor, index) => {
+                {gestoresComDados.map((gestor, index) => {
                   const tone =
                     (gestor.score_composto ?? 0) >= 65 ? "green" : (gestor.score_composto ?? 0) >= 45 ? "yellow" : "red";
 

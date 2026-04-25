@@ -170,21 +170,21 @@ export function DashboardPage() {
                 </p>
               </div>
               <div className="grid gap-4 xl:grid-cols-2">
-              <SummaryCard title="Mapa de performance" description="Cruza clientes ativos, taxa de sucesso e LTV médio por mês em uma única leitura por gestor.">
+              <SummaryCard title="Mapa de performance" description="Análise com base nos clientes ativos, taxa de sucesso e LTV médio/mês.">
                 <GestorPerformanceChart gestores={gestores} />
               </SummaryCard>
 
-              <SummaryCard title="Origem dos Clientes" description="Mostra de qual empresa veio cada cliente ativo da base atual.">
+              <SummaryCard title="Origem dos Clientes" description="Análise do canal de origem dos clientes ativos da base atual.">
                 <OrigemMixCard data={origemData} />
               </SummaryCard>
               </div>
             </section>
 
             <section className="grid gap-4 xl:grid-cols-2">
-              <SummaryCard title="Distribuição de LTV" description="Mostra como a carteira se distribui entre faixas de permanência em meses: 0–3, 4–6, 7–12, 13–18 e 19+ meses.">
+              <SummaryCard title="Distribuição de LTV" description="Análise das faixas de permanência dos clientes por quantidade de meses.">
                 <LtvDistributionChart data={ltvDistribution} />
               </SummaryCard>
-              <SummaryCard title="Saúde por origem de cliente" description="Cruza qualidade da carteira com a empresa de origem do lead.">
+              <SummaryCard title="Status dos clientes ativos por origem" description="Análise da qualidade dos clientes ativos com base na empresa de origem.">
                 <HealthByOriginChart data={healthByOrigin} />
               </SummaryCard>
             </section>

@@ -18,6 +18,7 @@ import {
   CartesianGrid,
   Cell,
   ComposedChart,
+  LabelList,
   Line,
   Pie,
   PieChart,
@@ -760,7 +761,8 @@ export function MonthExitBar({ data }: { data: SaidasPorMes[] }) {
   const monthData = data.slice(-12).map((item) => ({
     mes: shortMonthLabel(item.mes),
     tooltipLabel: item.mes,
-    saidas: item.clientes.length
+    saidas: item.clientes.length,
+    churn: item.churn
   }));
   const maxSaidas = Math.max(...monthData.map((item) => item.saidas), 1);
 
@@ -799,6 +801,14 @@ export function MonthExitBar({ data }: { data: SaidasPorMes[] }) {
                 }
               />
             ))}
+            <LabelList
+              dataKey="churn"
+              position="top"
+              formatter={(value: number | null | undefined) => formatPercent(value)}
+              fill="var(--muted-color)"
+              fontSize={11}
+              offset={8}
+            />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -855,7 +865,7 @@ export function LtvDistributionChart({
   return (
     <div className="h-[280px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 4, left: -8, bottom: 12 }} barCategoryGap={18}>
+        <BarChart data={data} margin={{ top: 8, right: 4, left: -8, bottom: 18 }} barCategoryGap={18}>
           <defs>
             <linearGradient id="ltvDistribution" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#1a68ff" />
@@ -868,12 +878,12 @@ export function LtvDistributionChart({
             axisLine={false}
             tickLine={false}
             interval={0}
-            height={48}
+            height={64}
             tick={({ x, y, payload }) => (
-              <g transform={`translate(${x},${y})`}>
+              <g transform={`translate(${x},${y + 6})`}>
                 <text textAnchor="middle" fill="var(--muted-color)" fontSize="12">
                   <tspan x="0" dy="0">{payload.value}</tspan>
-                  <tspan x="0" dy="14">meses</tspan>
+                  <tspan x="0" dy="16">meses</tspan>
                 </text>
               </g>
             )}
@@ -888,36 +898,24 @@ export function LtvDistributionChart({
 }
 
 export function HealthByOriginChart({
-  data
+  data,
+  labelKey = "origem"
 }: {
-  data: Array<{ origem: string; bom: number; alerta: number; critico: number }>;
+  data: Array<Record<string, string | number>>;
+  labelKey?: string;
 }) {
   return (
     <div>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-            <defs>
-              <linearGradient id="originHealthGreen" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#1f8f4d" />
-                <stop offset="100%" stopColor="#61d975" />
-              </linearGradient>
-              <linearGradient id="originHealthYellow" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#d88a05" />
-                <stop offset="100%" stopColor="#ffc603" />
-              </linearGradient>
-              <linearGradient id="originHealthRed" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#d11837" />
-                <stop offset="100%" stopColor="#ff4c61" />
-              </linearGradient>
-            </defs>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis dataKey="origem" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
+            <XAxis dataKey={labelKey} axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
             <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="bom" name="Bom" stackId="health" fill="url(#originHealthGreen)" radius={[10, 10, 0, 0]} />
-            <Bar dataKey="alerta" name="Alerta" stackId="health" fill="url(#originHealthYellow)" />
-            <Bar dataKey="critico" name="Crítico" stackId="health" fill="url(#originHealthRed)" radius={[10, 10, 0, 0]} />
+            <Bar dataKey="bom" name="Bom" stackId="health" fill="#39c56b" radius={[8, 0, 0, 8]} />
+            <Bar dataKey="alerta" name="Alerta" stackId="health" fill="#f0b93a" />
+            <Bar dataKey="critico" name="Crítico" stackId="health" fill="#f25b71" radius={[0, 8, 8, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

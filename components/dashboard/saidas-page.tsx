@@ -82,6 +82,23 @@ function filterDimensionRows(
   });
 }
 
+function summarizeDimension(rows: Array<Record<string, any>>, label: string) {
+  const totals = new Map<string, number>();
+  rows.forEach((row) => {
+    Object.entries(row).forEach(([key, value]) => {
+      if (key === "mes" || key === "tooltipLabel") return;
+      totals.set(key, (totals.get(key) ?? 0) + Number(value));
+    });
+  });
+
+  const top = Array.from(totals.entries()).sort((a, b) => b[1] - a[1])[0];
+  if (!top) {
+    return `Ainda não há dados suficientes para destacar o ${label} com mais churn no período.`;
+  }
+
+  return `${top[0]} concentra o maior churn por ${label} no período exibido, com ${top[1]} saídas registradas.`;
+}
+
 export function SaidasPage() {
   return (
     <DashboardDataPage
@@ -367,7 +384,13 @@ function SaidasContent({ data }: { data: ClientesDashboardData & { saidas_por_me
             description="Mostra quais origens concentram mais saídas em cada mês."
             actions={renderChartActions(originMode, setOriginMode, originYear, setOriginYear, originMonth, setOriginMonth, originYears, originMonths)}
           >
-            <ChurnByDimensionChart data={originRows} palette={["#1a68ff", "#4b8dff", "#7ab0ff", "#c9cfe5"]} />
+            <div className="space-y-4">
+              <ChurnByDimensionChart data={originRows} palette={["#1a68ff", "#4b8dff", "#7ab0ff", "#c9cfe5"]} />
+              <div className="theme-strong-surface rounded-[18px] border p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-primary">Leitura rápida</p>
+                <p className="theme-text mt-2 text-sm leading-6">{summarizeDimension(originRows, "origem")}</p>
+              </div>
+            </div>
           </SummaryCard>
 
           <SummaryCard
@@ -375,7 +398,13 @@ function SaidasContent({ data }: { data: ClientesDashboardData & { saidas_por_me
             description="Mostra quais nichos concentram mais saídas nos últimos 12 meses."
             actions={renderChartActions(nichoMode, setNichoMode, nichoYear, setNichoYear, nichoMonth, setNichoMonth, nicheYears, nicheMonths)}
           >
-            <ChurnByDimensionChart data={nicheRows} palette={["#7c3aed", "#a855f7", "#22c55e", "#06b6d4", "#f59e0b"]} />
+            <div className="space-y-4">
+              <ChurnByDimensionChart data={nicheRows} palette={["#7c3aed", "#a855f7", "#22c55e", "#06b6d4", "#f59e0b"]} />
+              <div className="theme-strong-surface rounded-[18px] border p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-primary">Leitura rápida</p>
+                <p className="theme-text mt-2 text-sm leading-6">{summarizeDimension(nicheRows, "nicho")}</p>
+              </div>
+            </div>
           </SummaryCard>
         </div>
       )}

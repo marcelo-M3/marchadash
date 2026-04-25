@@ -20,7 +20,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { href: "/", label: "Visão Geral", icon: LayoutDashboard },
-  { href: "/gestores", label: "Por Gestor", icon: Users },
+  { href: "/gestores", label: "Análise Gestores", icon: Users },
   { href: "/evolucao-mensal", label: "Evolução Mensal", icon: TrendingUp },
   { href: "/registro-de-saidas", label: "Análise de Churn", icon: LogOut }
 ];
