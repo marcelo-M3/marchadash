@@ -966,13 +966,13 @@ export function HealthByOriginChart({
 
 export function ChurnByDimensionChart({
   data,
-  dimensionLabel
+  palette
 }: {
   data: Array<Record<string, any>>;
-  dimensionLabel: string;
+  palette?: string[];
 }) {
   const keys = Object.keys(data[0] ?? {}).filter((key) => key !== "mes" && key !== "tooltipLabel");
-  const palette = ["#1a68ff", "#4b8dff", "#7ab0ff", "#b7d3ff", "#dce8ff"];
+  const chartPalette = palette ?? ["#1a68ff", "#4b8dff", "#7ab0ff", "#b7d3ff", "#dce8ff"];
 
   return (
     <div>
@@ -984,7 +984,14 @@ export function ChurnByDimensionChart({
             <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted-color)", fontSize: 12 }} />
             <Tooltip content={<CustomTooltip />} />
             {keys.map((key, index) => (
-              <Bar key={key} dataKey={key} name={key} stackId="stack" fill={palette[index % palette.length]} radius={0} barSize={34} />
+              <Bar
+                key={key}
+                dataKey={key}
+                name={key}
+                fill={chartPalette[index % chartPalette.length]}
+                radius={[8, 8, 0, 0]}
+                barSize={18}
+              />
             ))}
           </BarChart>
         </ResponsiveContainer>
@@ -992,8 +999,7 @@ export function ChurnByDimensionChart({
       <ChartLegendRow
         items={keys.map((key, index) => ({
           label: key,
-          color: palette[index % palette.length],
-          description: dimensionLabel
+          color: chartPalette[index % chartPalette.length]
         }))}
       />
     </div>

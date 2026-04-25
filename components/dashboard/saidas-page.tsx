@@ -24,12 +24,14 @@ type ExitItem = {
   clientes: string[];
 };
 
+type ChartViewMode = "last12" | "period";
+
+const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
 function parseExitMonth(label: string): { mes: string; ano: string } {
   const [mes, ano] = label.split("/");
   return { mes, ano: ano ?? "" };
 }
-
-const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 function parseMonthYear(value: string | null) {
   if (!value) return null;
@@ -50,12 +52,33 @@ function monthLabel(date: Date) {
   return `${monthNames[date.getMonth()]}/${date.getFullYear()}`;
 }
 
+function parseChartPeriod(label: string) {
+  const [mes, ano] = label.split("/");
+  return { mes: mes ?? "", ano: ano ?? "" };
+}
+
 function resolveEntry(record: BaseClienteDetalhado) {
   return parseMonthYear(record.ma_entrada) || (record.data_inicio ? new Date(record.data_inicio.split("/").reverse().join("-")) : null);
 }
 
 function resolveExit(record: BaseClienteDetalhado) {
   return parseMonthYear(record.ma_saida) || (record.data_saida ? new Date(record.data_saida.split("/").reverse().join("-")) : null);
+}
+
+function filterDimensionRows(
+  rows: Array<Record<string, any>>,
+  mode: ChartViewMode,
+  year: string,
+  month: string
+) {
+  if (mode === "last12") return rows.slice(-12);
+
+  return rows.filter((row) => {
+    const parsed = parseChartPeriod(String(row.tooltipLabel ?? ""));
+    if (parsed.ano !== year) return false;
+    if (month === "all") return true;
+    return parsed.mes === month;
+  });
 }
 
 export function SaidasPage() {
@@ -72,6 +95,12 @@ export function SaidasPage() {
 function SaidasContent({ data }: { data: ClientesDashboardData & { saidas_por_mes: ExitItem[] | any[] } }) {
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
+  const [originMode, setOriginMode] = useState<ChartViewMode>("last12");
+  const [originYear, setOriginYear] = useState("");
+  const [originMonth, setOriginMonth] = useState("all");
+  const [nichoMode, setNichoMode] = useState<ChartViewMode>("last12");
+  const [nichoYear, setNichoYear] = useState("");
+  const [nichoMonth, setNichoMonth] = useState("all");
 
   const exitItems = useMemo<ExitItem[]>(
     () =>
@@ -135,38 +164,11 @@ function SaidasContent({ data }: { data: ClientesDashboardData & { saidas_por_me
       .filter((record) => record.entry);
   }, [base]);
 
-  const churnByOrigin = useMemo(() => {
-    const exited = prepared.filter((record) => record.exit && record.origem);
-    const topOrigins = Array.from(
+  const buildDimensionRows = (field: "origem" | "nicho") => {
+    const exited = prepared.filter((record) => record.exit && record[field]);
+    const topValues = Array.from(
       exited.reduce((acc, record) => {
-        const key = record.origem || "Sem origem";
-        acc.set(key, (acc.get(key) ?? 0) + 1);
-        return acc;
-      }, new Map<string, number>())
-    )
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 4)
-      .map(([name]) => name);
-
-    const months = Array.from(new Set(exited.map((record) => monthKey(record.exit!))))
-      .sort()
-      .slice(-12);
-
-    return months.map((key) => {
-      const date = new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1);
-      const row: Record<string, any> = { mes: monthNames[date.getMonth()], tooltipLabel: monthLabel(date) };
-      topOrigins.forEach((origin) => {
-        row[origin] = exited.filter((record) => monthKey(record.exit!) === key && (record.origem || "Sem origem") === origin).length;
-      });
-      return row;
-    });
-  }, [prepared]);
-
-  const churnByGestor = useMemo(() => {
-    const exited = prepared.filter((record) => record.exit && record.gestor);
-    const topGestores = Array.from(
-      exited.reduce((acc, record) => {
-        const key = record.gestor || "Sem gestor";
+        const key = (record[field] as string) || (field === "origem" ? "Sem origem" : "Sem nicho");
         acc.set(key, (acc.get(key) ?? 0) + 1);
         return acc;
       }, new Map<string, number>())
@@ -182,39 +184,130 @@ function SaidasContent({ data }: { data: ClientesDashboardData & { saidas_por_me
     return months.map((key) => {
       const date = new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1);
       const row: Record<string, any> = { mes: monthNames[date.getMonth()], tooltipLabel: monthLabel(date) };
-      topGestores.forEach((gestor) => {
-        row[gestor] = exited.filter((record) => monthKey(record.exit!) === key && (record.gestor || "Sem gestor") === gestor).length;
+      topValues.forEach((value) => {
+        row[value] = exited.filter(
+          (record) => monthKey(record.exit!) === key && ((record[field] as string) || (field === "origem" ? "Sem origem" : "Sem nicho")) === value
+        ).length;
       });
       return row;
     });
-  }, [prepared]);
+  };
 
-  const churnByNicho = useMemo(() => {
-    const exited = prepared.filter((record) => record.exit && record.nicho);
-    const topNichos = Array.from(
-      exited.reduce((acc, record) => {
-        const key = record.nicho || "Sem nicho";
-        acc.set(key, (acc.get(key) ?? 0) + 1);
-        return acc;
-      }, new Map<string, number>())
-    )
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([name]) => name);
+  const churnByOrigin = useMemo(() => buildDimensionRows("origem"), [prepared]);
+  const churnByNicho = useMemo(() => buildDimensionRows("nicho"), [prepared]);
 
-    const months = Array.from(new Set(exited.map((record) => monthKey(record.exit!))))
-      .sort()
-      .slice(-12);
+  const originYears = useMemo(
+    () =>
+      Array.from(new Set(churnByOrigin.map((row) => parseChartPeriod(String(row.tooltipLabel ?? "")).ano).filter(Boolean))).sort((a, b) =>
+        b.localeCompare(a)
+      ),
+    [churnByOrigin]
+  );
 
-    return months.map((key) => {
-      const date = new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1);
-      const row: Record<string, any> = { mes: monthNames[date.getMonth()], tooltipLabel: monthLabel(date) };
-      topNichos.forEach((nicho) => {
-        row[nicho] = exited.filter((record) => monthKey(record.exit!) === key && (record.nicho || "Sem nicho") === nicho).length;
-      });
-      return row;
-    });
-  }, [prepared]);
+  const nicheYears = useMemo(
+    () =>
+      Array.from(new Set(churnByNicho.map((row) => parseChartPeriod(String(row.tooltipLabel ?? "")).ano).filter(Boolean))).sort((a, b) =>
+        b.localeCompare(a)
+      ),
+    [churnByNicho]
+  );
+
+  useEffect(() => {
+    if (!originYears.length) return;
+    setOriginYear((current) => (originYears.includes(current) ? current : originYears[0]));
+  }, [originYears]);
+
+  useEffect(() => {
+    if (!nicheYears.length) return;
+    setNichoYear((current) => (nicheYears.includes(current) ? current : nicheYears[0]));
+  }, [nicheYears]);
+
+  const originMonths = useMemo(
+    () =>
+      churnByOrigin
+        .map((row) => parseChartPeriod(String(row.tooltipLabel ?? "")))
+        .filter((row) => row.ano === originYear)
+        .map((row) => row.mes),
+    [churnByOrigin, originYear]
+  );
+
+  const nicheMonths = useMemo(
+    () =>
+      churnByNicho
+        .map((row) => parseChartPeriod(String(row.tooltipLabel ?? "")))
+        .filter((row) => row.ano === nichoYear)
+        .map((row) => row.mes),
+    [churnByNicho, nichoYear]
+  );
+
+  useEffect(() => {
+    const exists = originMonths.includes(originMonth);
+    setOriginMonth(exists || originMonth === "all" ? originMonth : "all");
+  }, [originMonths, originMonth]);
+
+  useEffect(() => {
+    const exists = nicheMonths.includes(nichoMonth);
+    setNichoMonth(exists || nichoMonth === "all" ? nichoMonth : "all");
+  }, [nicheMonths, nichoMonth]);
+
+  const originRows = filterDimensionRows(churnByOrigin, originMode, originYear, originMonth);
+  const nicheRows = filterDimensionRows(churnByNicho, nichoMode, nichoYear, nichoMonth);
+
+  const renderChartActions = (
+    mode: ChartViewMode,
+    setMode: (value: ChartViewMode) => void,
+    year: string,
+    setYear: (value: string) => void,
+    month: string,
+    setMonth: (value: string) => void,
+    yearsList: string[],
+    monthsList: string[]
+  ) => (
+    <div className="flex flex-wrap items-center gap-2">
+      <select
+        value={mode}
+        onChange={(event) => setMode(event.target.value as ChartViewMode)}
+        className="theme-soft-surface theme-text h-9 rounded-full border px-3 text-xs outline-none"
+      >
+        <option value="last12" style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+          Últimos 12 meses
+        </option>
+        <option value="period" style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+          Período
+        </option>
+      </select>
+
+      {mode === "period" ? (
+        <>
+          <select
+            value={year}
+            onChange={(event) => setYear(event.target.value)}
+            className="theme-soft-surface theme-text h-9 rounded-full border px-3 text-xs outline-none"
+          >
+            {yearsList.map((item) => (
+              <option key={item} value={item} style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+                {item}
+              </option>
+            ))}
+          </select>
+          <select
+            value={month}
+            onChange={(event) => setMonth(event.target.value)}
+            className="theme-soft-surface theme-text h-9 rounded-full border px-3 text-xs outline-none"
+          >
+            <option value="all" style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+              Todos os meses
+            </option>
+            {monthsList.map((item) => (
+              <option key={item} value={item} style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </>
+      ) : null}
+    </div>
+  );
 
   return (
     <div className="space-y-8 pb-10">
@@ -242,100 +335,95 @@ function SaidasContent({ data }: { data: ClientesDashboardData & { saidas_por_me
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
-        <SummaryCard title="Volume de churn por mês" description="Mostra quantos clientes saíram nos últimos 12 meses.">
-          <MonthExitBar data={data.saidas_por_mes} />
-        </SummaryCard>
-
-        <SummaryCard title="Detalhamento" description="Escolha o mês e o ano para ver a lista do período.">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="space-y-2">
-              <span className="theme-muted text-xs uppercase tracking-[0.18em]">Ano</span>
-              <select
-                value={selectedYear}
-                onChange={(event) => setSelectedYear(event.target.value)}
-                className="theme-surface theme-text h-11 w-full rounded-[14px] border px-4 text-sm outline-none transition focus:border-primary/60"
-              >
-                {years.map((year) => (
-                  <option key={year} value={year} style={{ background: "var(--surface)", color: "var(--text-color)" }}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="space-y-2">
-              <span className="theme-muted text-xs uppercase tracking-[0.18em]">Mês</span>
-              <select
-                value={selectedMonth}
-                onChange={(event) => setSelectedMonth(event.target.value)}
-                className="theme-surface theme-text h-11 w-full rounded-[14px] border px-4 text-sm outline-none transition focus:border-primary/60"
-              >
-                {monthsForYear.map((item) => (
-                  <option
-                    key={item.key}
-                    value={item.mes}
-                    style={{ background: "var(--surface)", color: "var(--text-color)" }}
-                  >
-                    {item.mes}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          {selectedExit ? (
-            <div className="mt-6 space-y-4">
-              <div className="theme-soft-surface flex flex-col gap-3 rounded-[20px] border p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="theme-text text-lg font-semibold">{selectedExit.label}</p>
-                  <p className="theme-muted text-sm">{selectedExit.clientes.length} saídas registradas</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {selectedExit.parcial ? <Badge tone="gray">Em aberto</Badge> : null}
-                  <Badge tone={getChurnTone(selectedExit.churn)}>
-                    {selectedExit.churn !== null ? formatPercent(selectedExit.churn) : "—"}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {selectedExit.clientes.map((cliente) => (
-                  <span
-                    key={`${selectedExit.key}-${cliente}`}
-                    className="theme-surface theme-text rounded-full border px-3 py-2 text-sm"
-                  >
-                    {cliente}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="theme-soft-surface theme-muted mt-6 rounded-[18px] border p-4 text-sm">
-              Nenhum detalhe encontrado para o filtro atual.
-            </div>
-          )}
-        </SummaryCard>
-      </div>
+      <SummaryCard title="Volume de churn por mês" description="Mostra quantos clientes saíram nos últimos 12 meses.">
+        <MonthExitBar data={data.saidas_por_mes} />
+      </SummaryCard>
 
       {!!data.base_clientes_detalhada?.length && (
-        <>
-          <div className="grid gap-4 xl:grid-cols-2">
-            <SummaryCard title="Churn por origem de cliente" description="Mostra quais origens concentram mais saídas em cada mês.">
-              <ChurnByDimensionChart data={churnByOrigin} dimensionLabel="Origem" />
-            </SummaryCard>
-            <SummaryCard title="Churn por nicho" description="Mostra quais nichos concentram mais saídas nos últimos 12 meses.">
-              <ChurnByDimensionChart data={churnByNicho} dimensionLabel="Nicho" />
-            </SummaryCard>
-          </div>
+        <div className="grid gap-4 xl:grid-cols-2">
+          <SummaryCard
+            title="Churn por origem de cliente"
+            description="Mostra quais origens concentram mais saídas em cada mês."
+            actions={renderChartActions(originMode, setOriginMode, originYear, setOriginYear, originMonth, setOriginMonth, originYears, originMonths)}
+          >
+            <ChurnByDimensionChart data={originRows} palette={["#1a68ff", "#4b8dff", "#7ab0ff", "#c9cfe5"]} />
+          </SummaryCard>
 
-          <div className="grid gap-4 xl:grid-cols-1">
-            <SummaryCard title="Churn por gestor" description="Mostra quais carteiras concentram mais saídas ao longo do tempo.">
-              <ChurnByDimensionChart data={churnByGestor} dimensionLabel="Gestor" />
-            </SummaryCard>
-          </div>
-        </>
+          <SummaryCard
+            title="Churn por nicho"
+            description="Mostra quais nichos concentram mais saídas nos últimos 12 meses."
+            actions={renderChartActions(nichoMode, setNichoMode, nichoYear, setNichoYear, nichoMonth, setNichoMonth, nicheYears, nicheMonths)}
+          >
+            <ChurnByDimensionChart data={nicheRows} palette={["#7c3aed", "#a855f7", "#22c55e", "#06b6d4", "#f59e0b"]} />
+          </SummaryCard>
+        </div>
       )}
+
+      <SummaryCard title="Detalhamento" description="Escolha o mês e o ano para ver a lista do período.">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="space-y-2">
+            <span className="theme-muted text-xs uppercase tracking-[0.18em]">Ano</span>
+            <select
+              value={selectedYear}
+              onChange={(event) => setSelectedYear(event.target.value)}
+              className="theme-surface theme-text h-11 w-full rounded-[14px] border px-4 text-sm outline-none transition focus:border-primary/60"
+            >
+              {years.map((year) => (
+                <option key={year} value={year} style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-2">
+            <span className="theme-muted text-xs uppercase tracking-[0.18em]">Mês</span>
+            <select
+              value={selectedMonth}
+              onChange={(event) => setSelectedMonth(event.target.value)}
+              className="theme-surface theme-text h-11 w-full rounded-[14px] border px-4 text-sm outline-none transition focus:border-primary/60"
+            >
+              {monthsForYear.map((item) => (
+                <option key={item.key} value={item.mes} style={{ background: "var(--surface)", color: "var(--text-color)" }}>
+                  {item.mes}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {selectedExit ? (
+          <div className="mt-6 space-y-4">
+            <div className="theme-soft-surface flex flex-col gap-3 rounded-[20px] border p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="theme-text text-lg font-semibold">{selectedExit.label}</p>
+                <p className="theme-muted text-sm">{selectedExit.clientes.length} saídas registradas</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedExit.parcial ? <Badge tone="gray">Em aberto</Badge> : null}
+                <Badge tone={getChurnTone(selectedExit.churn)}>
+                  {selectedExit.churn !== null ? formatPercent(selectedExit.churn) : "—"}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {selectedExit.clientes.map((cliente) => (
+                <span
+                  key={`${selectedExit.key}-${cliente}`}
+                  className="theme-surface theme-text rounded-full border px-3 py-2 text-sm"
+                >
+                  {cliente}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="theme-soft-surface theme-muted mt-6 rounded-[18px] border p-4 text-sm">
+            Nenhum detalhe encontrado para o filtro atual.
+          </div>
+        )}
+      </SummaryCard>
     </div>
   );
 }
