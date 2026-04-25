@@ -52,6 +52,12 @@
   color: #0f172a;
 }
 
+.chip-blue {
+  border: 1px solid #cfe0ff;
+  background: #eef4ff;
+  color: #0f172a;
+}
+
 .chip-yellow {
   border: 1px solid #fde2b7;
   background: #fff7e8;
@@ -67,6 +73,12 @@
 [data-theme="dark"] .chip-green {
   border-color: #1f5133;
   background: rgba(22, 163, 74, 0.14);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .chip-blue {
+  border-color: #28498a;
+  background: rgba(36, 107, 255, 0.14);
   color: #f8fafc;
 }
 

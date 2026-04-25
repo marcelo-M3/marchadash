@@ -169,25 +169,46 @@ export function CustomTooltip({
 export function InsightChip({
   label,
   value,
-  tone = "default"
+  tone = "default",
+  icon: Icon
 }: {
   label: string;
   value: string;
   tone?: "default" | "blue" | "green" | "yellow" | "red";
+  icon?: LucideIcon;
 }) {
   const toneClasses = {
     default: "theme-surface theme-text",
-    blue: "theme-strong-surface theme-text",
+    blue: "chip-blue",
     green: "chip-green",
     yellow: "chip-yellow",
     red: "chip-red"
   } as const;
 
+  const iconColors = {
+    default: "var(--muted-color)",
+    blue: "var(--primary-color)",
+    green: "var(--success-color)",
+    yellow: "var(--warning-color)",
+    red: "var(--danger-color)"
+  } as const;
+
   return (
-    <div className={cn("rounded-[22px] border px-5 py-5 min-h-[124px] flex flex-col justify-between", toneClasses[tone])}>
+    <div
+      className={cn(
+        "relative flex min-h-[152px] flex-col justify-between overflow-hidden rounded-[24px] border px-6 py-5",
+        toneClasses[tone]
+      )}
+    >
+      {Icon ? (
+        <Icon
+          className="pointer-events-none absolute right-5 top-5 h-16 w-16"
+          style={{ color: iconColors[tone], opacity: 0.18 }}
+        />
+      ) : null}
       <p
         className={cn(
-          "text-[15px] font-semibold leading-6",
+          "max-w-[16rem] text-[12px] font-medium uppercase tracking-[0.18em]",
           tone === "default" || tone === "blue" ? "theme-text" : "text-inherit"
         )}
       >
@@ -195,7 +216,7 @@ export function InsightChip({
       </p>
       <p
         className={cn(
-          "mt-6 text-[1.8rem] font-semibold tracking-[-0.03em]",
+          "relative z-10 mt-8 max-w-[18rem] pr-10 text-[clamp(2rem,2.5vw,2.8rem)] font-semibold leading-tight tracking-[-0.04em]",
           tone === "default" || tone === "blue" ? "theme-text" : "text-inherit"
         )}
       >
@@ -236,21 +257,37 @@ export function MetricCard({
     red: "red"
   } as const;
 
+  const iconColors = {
+    blue: "var(--primary-color)",
+    green: "var(--success-color)",
+    yellow: "var(--warning-color)",
+    red: "var(--danger-color)"
+  } as const;
+
+  const cardTone = {
+    blue: "border-[#2d5eff]/25 bg-[#1d2740]",
+    green: "border-[#2d7a43]/35 bg-[#1a2624]",
+    yellow: "border-[#8e6420]/45 bg-[#2a2924]",
+    red: "border-[#6a2835]/45 bg-[#26212a]"
+  } as const;
+
   const card = (
     <Card
       className={cn(
-        "relative overflow-hidden p-5 transition duration-200",
+        "relative overflow-hidden p-6 transition duration-200",
+        cardTone[tone],
         href ? "hover:-translate-y-0.5 hover:border-primary/30" : ""
       )}
     >
       <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50", healthGradient[tone])} />
+      <Icon
+        className="pointer-events-none absolute right-5 top-6 h-20 w-20"
+        style={{ color: iconColors[tone], opacity: 0.2 }}
+      />
       <div className="relative">
-        <CardHeader>
+        <CardHeader className="pr-16">
           <div>
-            <p className="theme-muted text-xs uppercase tracking-[0.16em]">{title}</p>
-          </div>
-          <div className="theme-soft-surface theme-text rounded-full border p-2">
-            <Icon className="h-4 w-4" />
+            <p className="theme-muted text-[12px] font-medium uppercase tracking-[0.18em]">{title}</p>
           </div>
         </CardHeader>
         <CardContent className="mt-6 space-y-3">
@@ -339,46 +376,53 @@ export function OrigemMixCard({
   var topSource = data[0];
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr] xl:items-center">
+    <div className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
       <div className="theme-soft-surface rounded-[24px] border p-5">
-        <div className="relative mx-auto h-[240px] w-[240px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={66}
-                outerRadius={102}
-                stroke="transparent"
-                paddingAngle={4}
-              >
-                {data.map((item) => (
-                  <Cell key={item.name} fill={item.color} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-            <p className="theme-muted text-[11px] uppercase tracking-[0.22em]">Base ativa</p>
-            <p className="theme-text mt-2 text-5xl font-semibold tracking-[-0.05em]">{total}</p>
-            <p className="theme-muted mt-1 text-sm">clientes mapeados</p>
-          </div>
-        </div>
-
-        <div className="theme-surface mt-4 rounded-[18px] border p-4">
-          <p className="theme-muted text-[11px] uppercase tracking-[0.18em]">Origem dominante</p>
-          <div className="mt-3 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="h-3 w-3 rounded-full" style={{ backgroundColor: topSource.color }} />
-              <div>
-                <p className="theme-text text-sm font-semibold">{topSource.name}</p>
-                <p className="theme-muted text-xs">{formatPercent(topSource.percent)} da base</p>
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="theme-muted text-[11px] uppercase tracking-[0.2em]">Base ativa</p>
+              <p className="theme-text mt-2 text-5xl font-semibold tracking-[-0.05em]">{total}</p>
+              <p className="theme-muted mt-2 text-sm">clientes distribuídos por origem</p>
+            </div>
+            <div className="theme-surface rounded-[18px] border px-4 py-3 sm:min-w-[220px]">
+              <p className="theme-muted text-[11px] uppercase tracking-[0.18em]">Origem principal</p>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: topSource.color }} />
+                  <div className="min-w-0">
+                    <p className="theme-text truncate text-sm font-semibold">{topSource.name}</p>
+                    <p className="theme-muted text-xs">{formatPercent(topSource.percent)} da base</p>
+                  </div>
+                </div>
+                <span className="theme-text text-2xl font-semibold">{topSource.value}</span>
               </div>
             </div>
-            <span className="theme-text text-xl font-semibold">{topSource.value}</span>
+          </div>
+
+          <div className="theme-surface rounded-[22px] border p-4">
+            <p className="theme-muted text-[11px] uppercase tracking-[0.18em]">Distribuição proporcional</p>
+            <div className="mt-4 flex h-6 overflow-hidden rounded-full border theme-border bg-[var(--surface-soft)]">
+              {data.map((item) => (
+                <div
+                  key={item.name}
+                  title={`${item.name} · ${formatPercent(item.percent)}`}
+                  style={{ width: `${item.percent}%`, backgroundColor: item.color }}
+                />
+              ))}
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {data.map((item) => (
+                <div key={item.name} className="rounded-[18px] border theme-border bg-[var(--surface)] px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                    <p className="theme-text truncate text-sm font-semibold">{item.name}</p>
+                  </div>
+                  <p className="theme-text mt-4 text-2xl font-semibold tracking-[-0.04em]">{item.value}</p>
+                  <p className="theme-muted mt-1 text-xs">{formatPercent(item.percent)} da base ativa</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -559,13 +603,13 @@ export function MonthExitBar({ data }: { data: SaidasPorMes[] }) {
 }
 
 export function EvolucaoTable({
-  data,
+  rows,
   footer
 }: {
-  data: ClientesDashboardData;
+  rows: EvolucaoMensal[];
   footer?: ReactNode;
 }) {
-  const completed = data.evolucao_mensal.filter((item) => !item.parcial && item.churn !== null);
+  const completed = rows.filter((item) => !item.parcial && item.churn !== null);
 
   return (
     <Card className="p-6">
@@ -590,7 +634,7 @@ export function EvolucaoTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.evolucao_mensal.map((row) => (
+              {rows.map((row) => (
                 <TableRow key={row.mes}>
                   <TableCell className="theme-text font-medium">{row.mes}</TableCell>
                   <TableCell>{row.base_inicio}</TableCell>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity } from "lucide-react";
+import { Activity, BarChart3, Trophy, Users } from "lucide-react";
 import { DashboardDataPage } from "@/components/dashboard/dashboard-shell";
 import {
   GestorPerformanceChart,
@@ -31,9 +31,10 @@ export function GestoresPage() {
                 label="Melhor taxa de sucesso"
                 value={topGestor ? `${topGestor.nome} · ${formatPercent(topGestor.taxa_sucesso)}` : "—"}
                 tone="green"
+                icon={Trophy}
               />
-              <InsightChip label="Média da equipe" value={formatPercent(avgSuccess)} tone="blue" />
-              <InsightChip label="Gestores ativos" value={String(gestores.length)} />
+              <InsightChip label="Média da equipe" value={formatPercent(avgSuccess)} tone="blue" icon={BarChart3} />
+              <InsightChip label="Gestores ativos" value={String(gestores.length)} icon={Users} />
             </div>
 
             <div className="grid gap-4 2xl:grid-cols-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import type { Route } from "next";
-import { AlertTriangle, ShieldAlert, ShieldCheck, Users } from "lucide-react";
+import { Activity, AlertTriangle, ArrowUpDown, Clock3, ShieldAlert, ShieldCheck, Users } from "lucide-react";
 import { DashboardDataPage } from "@/components/dashboard/dashboard-shell";
 import {
   HealthDonut,
@@ -53,12 +53,23 @@ export function DashboardPage() {
                     {data.clientes_bons} clientes estão bem, {data.clientes_alerta} pedem atenção e {data.clientes_critico} estão em situação crítica.
                   </p>
                   <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                    <InsightChip label="Taxa de sucesso" value={formatPercent(data.taxa_sucesso)} tone="green" />
-                    <InsightChip label="LTV médio" value={`${formatMonths(data.ltv_medio)} meses`} tone="blue" />
+                    <InsightChip
+                      label="Taxa de sucesso"
+                      value={formatPercent(data.taxa_sucesso)}
+                      tone="green"
+                      icon={Activity}
+                    />
+                    <InsightChip
+                      label="LTV médio"
+                      value={`${formatMonths(data.ltv_medio)} meses`}
+                      tone="blue"
+                      icon={Clock3}
+                    />
                     <InsightChip
                       label="Variação da base"
                       value={formatSignedPercent(data.variacao_base)}
                       tone={data.variacao_base >= 0 ? "blue" : "yellow"}
+                      icon={ArrowUpDown}
                     />
                   </div>
                 </div>
@@ -117,7 +128,7 @@ export function DashboardPage() {
                 </div>
               </SummaryCard>
 
-              <SummaryCard title="Origem da carteira" description="Mostra de qual empresa veio cada cliente ativo da base atual.">
+              <SummaryCard title="Origem dos Clientes" description="Mostra de qual empresa veio cada cliente ativo da base atual.">
                 <OrigemMixCard data={origemData} />
               </SummaryCard>
             </div>
